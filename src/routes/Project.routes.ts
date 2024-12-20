@@ -30,6 +30,11 @@ router
 		handleValidationErrors,
 		ProjectController.updateProject
 	)
+	.delete(
+		param('id').isMongoId().withMessage('ID no válido'), 
+		handleValidationErrors,
+		ProjectController.deleteProject
+	)
 
 
 export default router;
