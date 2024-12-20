@@ -21,7 +21,15 @@ router
 	.get(
 		param('id').isMongoId().withMessage('ID no válido'), 
 		handleValidationErrors, ProjectController.getProjectById
-	);
-	
+	)
+	.put(
+		param('id').isMongoId().withMessage('ID no válido'),
+		body('projectName').trim().notEmpty().withMessage('El Nombre del Proyecto es Obligatorio'),
+		body('clientName').trim().notEmpty().withMessage('El Nombre del Cliente es Obligatorio'),
+		body('description').trim().notEmpty().withMessage('La Descripción del Proyecto es Obligatoria'),
+		handleValidationErrors,
+		ProjectController.updateProject
+	)
+
 
 export default router;
