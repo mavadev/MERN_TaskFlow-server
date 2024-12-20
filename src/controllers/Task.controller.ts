@@ -18,4 +18,13 @@ export class TaskController {
 			res.status(500).json({ error: error.message });
 		}
 	}
+
+	static async getAllTasks(req: Request, res: Response) {
+		try {
+			const tasks = await Task.find({ project: req.project.id });
+			res.status(200).json(tasks);
+		} catch (error) {
+			res.status(500).json({ error: error.message });
+		}
+	}
 }

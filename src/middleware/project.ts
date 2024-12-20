@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import Project, { IProject } from '../models/Project.model';
+import { isValidObjectId } from 'mongoose';
 
 declare global {
 	namespace Express {
@@ -12,6 +13,12 @@ declare global {
 export const validateProjectExists = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const { projectID } = req.params;
+
+		// Validar que el ID sea válido
+		if (!isValidObjectId(projectID)) {
+			res.status(400).json({ error: 'El ID proporcionado no es válido.' });
+			return;
+		}
 
 		const project = await Project.findById(projectID);
 		if (!project) {
