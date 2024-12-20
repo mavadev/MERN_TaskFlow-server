@@ -16,7 +16,7 @@ export const validateProjectExists = async (req: Request, res: Response, next: N
 
 		// Validar que el ID sea válido
 		if (!isValidObjectId(projectID)) {
-			res.status(400).json({ error: 'El ID proporcionado no es válido.' });
+			res.status(400).json({ error: 'El ID del Proyecto no es válido.' });
 			return;
 		}
 

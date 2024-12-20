@@ -27,4 +27,21 @@ export class TaskController {
 			res.status(500).json({ error: error.message });
 		}
 	}
+
+	static async getTaskByID(req: Request, res: Response) {
+		try {
+			const task = await Task.findById(req.params.taskID);
+			if (!task) {
+				res.status(404).json({ error: 'Tarea no encontrada' });
+				return;
+			}
+			if (task.project.toString() !== req.project.id) {
+				res.status(400).json({ error: 'Tarea no pertenece al proyecto' });
+				return;
+			}
+			res.status(200).json(task);
+		} catch (error) {
+			res.status(500).json({ error: error.message });
+		}
+	}
 }
