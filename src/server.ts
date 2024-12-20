@@ -12,7 +12,6 @@ app.use(express.json());
 app.use(morgan('dev'));
 
 // Routes
-app.use('/api/projects', projectRoutes);
-app.use('/api/projects/:projectID/tasks', taskRoutes);
+app.use('/api/projects', projectRoutes, taskRoutes);
 
 export default app;
