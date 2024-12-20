@@ -6,13 +6,18 @@ export class ProjectController {
 		const project = new Project(req.body);
 		try {
 			await project.save();
-			res.json(project);
+			res.status(201).json(project);
 		} catch (error) {
 			console.error(error);
 		}
 	};
 
 	static getAllProjects = async (req: Request, res: Response) => {
-		res.send('Todos los proyectos');
+		try {
+			const projects = await Project.find({});
+			res.status(200).json(projects);
+		} catch (error) {
+			console.error(error);
+		}
 	};
 }
