@@ -30,16 +30,21 @@ export class TaskController {
 
 	static async getTaskByID(req: Request, res: Response) {
 		try {
-			const task = await Task.findById(req.params.taskID);
-			if (!task) {
-				res.status(404).json({ error: 'Tarea no encontrada' });
-				return;
-			}
-			if (task.project.toString() !== req.project.id) {
-				res.status(400).json({ error: 'Tarea no pertenece al proyecto' });
-				return;
-			}
-			res.status(200).json(task);
+			res.status(200).json(req.task);
+		} catch (error) {
+			res.status(500).json({ error: error.message });
+		}
+	}
+
+	static async updateTask(req: Request, res: Response) {
+		try {
+			// Actualizar tarea
+			req.task.name = req.body.name;
+			req.task.description = req.body.description;
+			req.task.status = req.body.status;
+			await req.task.save();
+
+			res.status(200).json(req.task);
 		} catch (error) {
 			res.status(500).json({ error: error.message });
 		}
