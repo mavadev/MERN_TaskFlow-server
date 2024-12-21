@@ -49,4 +49,18 @@ export class TaskController {
 			res.status(500).json({ error: error.message });
 		}
 	}
+
+	static async deleteTask(req: Request, res: Response) {
+		try {
+			// Guardamos el proyecto actualizado y eliminamos la tarea
+			await Promise.allSettled([
+				req.project.updateOne({ $pull: { tasks: req.task.id } }),
+				req.task.deleteOne()
+			]);
+
+			res.status(200).json({ message: 'Tarea Eliminada Correctamente' });
+		} catch (error) {
+			res.status(500).json({ error: error.message });
+		}
+	}
 }

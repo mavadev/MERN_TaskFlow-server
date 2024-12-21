@@ -33,6 +33,11 @@ router
 		body('status').trim().notEmpty().withMessage('El Estado de la Tarea es Obligatoria'),
 		handleValidationErrors,
 		TaskController.updateTask
+	)
+	.delete(
+		param('taskID').isMongoId().withMessage('El ID de la Tarea no es válido'),
+		handleValidationErrors,
+		TaskController.deleteTask
 	);
 
 export default router;
