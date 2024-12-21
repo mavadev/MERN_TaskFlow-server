@@ -38,6 +38,19 @@ router
 		param('taskID').isMongoId().withMessage('El ID de la Tarea no es válido'),
 		handleValidationErrors,
 		TaskController.deleteTask
+	)
+	.patch(
+		param('taskID').isMongoId().withMessage('El ID de la Tarea no es válido'),
+		body('status').trim().notEmpty().withMessage('El Estado de la Tarea es Obligatoria'),
+		handleValidationErrors
 	);
+
+router.patch(
+	'/:projectID/tasks/:taskID/status',
+	param('taskID').isMongoId().withMessage('El ID de la Tarea no es válido'),
+	body('status').trim().notEmpty().withMessage('El Estado de la Tarea es Obligatoria'),
+	handleValidationErrors,
+	TaskController.updateTaskStatus
+);
 
 export default router;

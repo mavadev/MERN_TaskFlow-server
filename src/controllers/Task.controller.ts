@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express';
 import Task from '../models/Task.model';
+import { taskStatus } from '../models/Task.model';
 
 export class TaskController {
 	static async createTask(req: Request, res: Response) {
@@ -53,12 +54,29 @@ export class TaskController {
 	static async deleteTask(req: Request, res: Response) {
 		try {
 			// Guardamos el proyecto actualizado y eliminamos la tarea
-			await Promise.allSettled([
-				req.project.updateOne({ $pull: { tasks: req.task.id } }),
-				req.task.deleteOne()
-			]);
+			await Promise.allSettled([req.project.updateOne({ $pull: { tasks: req.task.id } }), req.task.deleteOne()]);
 
 			res.status(200).json({ message: 'Tarea Eliminada Correctamente' });
+		} catch (error) {
+			res.status(500).json({ error: error.message });
+		}
+	}
+
+	static async updateTaskStatus(req: Request, res: Response) {
+		try {
+			const validStatuses = Object.values(taskStatus);
+
+			// Validar estado válido
+			if (!validStatuses.includes(req.body.status)) {
+				res.status(400).json({ error: 'Estado de tarea inválido' });
+				return;
+			}
+
+			// Actualizar estado de la tarea
+			req.task.status = req.body.status;
+			await req.task.save();
+
+			res.status(200).json(req.task);
 		} catch (error) {
 			res.status(500).json({ error: error.message });
 		}

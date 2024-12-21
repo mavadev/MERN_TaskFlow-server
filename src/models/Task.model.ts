@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document, Types } from 'mongoose';
 
 // Estado de la tarea
-const taskStatus = {
+export const taskStatus = {
 	PENDING: 'pending',
 	ON_HOLD: 'onHold',
 	IN_PROGRESS: 'inProgress',
