@@ -1,8 +1,7 @@
 import express from 'express';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
-import projectRoutes from './routes/Project.routes';
-import taskRoutes from './routes/Task.routes';
+import apiRoutes from './routes';
 
 dotenv.config();
 const app = express();
@@ -12,6 +11,6 @@ app.use(express.json());
 app.use(morgan('dev'));
 
 // Routes
-app.use('/api/projects', projectRoutes, taskRoutes);
+app.use('/api', apiRoutes);
 
 export default app;
