@@ -24,7 +24,7 @@ export const checkProjectValidity = async (req: Request, res: Response, next: Ne
 		}
 
 		// Validar que el proyecto exista
-		const project = await Project.findById(projectId);
+		const project = await Project.findById(projectId).populate('tasks');
 		if (!project) {
 			res.status(404).json({ message: 'Proyecto no encontrado' });
 			return;

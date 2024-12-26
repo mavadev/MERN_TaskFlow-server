@@ -12,7 +12,7 @@ export class ProjectController {
 		}
 	}
 
-	static async getAllProjects(req: Request, res: Response) {
+	static async getAllProjects(_: Request, res: Response) {
 		try {
 			const projects = await Project.find({});
 			res.status(200).json(projects);
@@ -22,28 +22,13 @@ export class ProjectController {
 	}
 
 	static async getProjectById(req: Request, res: Response) {
-		try {
-			const project = await Project.findById(req.params.projectId).populate('tasks');
-			if (!project) {
-				res.status(404).json({ message: 'Proyecto no encontrado' });
-				return;
-			}
-			res.status(200).json(project);
-		} catch (error) {
-			res.status(500).json({ error: error.message });
-		}
+		res.status(200).json(req.project);
 	}
 
 	static async updateProject(req: Request, res: Response) {
 		try {
-			const project = await Project.findByIdAndUpdate(req.params.projectId, req.body, {
-				returnDocument: 'after',
-			});
-			if (!project) {
-				res.status(404).json({ message: 'Proyecto no encontrado' });
-				return;
-			}
-			res.status(200).json(project);
+			const projectUpdated = await req.project.updateOne(req.body, { returnDocument: 'after' });
+			res.status(200).json(projectUpdated);
 		} catch (error) {
 			res.status(500).json({ error: error.message });
 		}
@@ -51,12 +36,7 @@ export class ProjectController {
 
 	static async deleteProject(req: Request, res: Response) {
 		try {
-			const project = await Project.findById(req.params.projectId);
-			if (!project) {
-				res.status(404).json({ message: 'Proyecto no encontrado' });
-				return;
-			}
-			await project.deleteOne();
+			await req.project.deleteOne();
 			res.status(204).end();
 		} catch (error) {
 			res.status(500).json({ error: error.message });
