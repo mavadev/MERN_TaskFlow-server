@@ -26,7 +26,7 @@ export const checkProjectValidity = async (req: Request, res: Response, next: Ne
 		// Validar que el proyecto exista
 		const project = await Project.findById(projectId).populate('tasks');
 		if (!project) {
-			res.status(404).json({ message: 'Proyecto no encontrado' });
+			res.status(404).json({ error: 'Proyecto no encontrado' });
 			return;
 		}
 
@@ -50,7 +50,7 @@ export const checkTaskValidity = async (req: Request, res: Response, next: NextF
 		// Validar que la tarea exista
 		const task = await Task.findOne({ _id: taskId, project: req.project.id });
 		if (!task) {
-			res.status(404).json({ message: 'Tarea no encontrada' });
+			res.status(404).json({ error: 'Tarea no encontrada' });
 			return;
 		}
 

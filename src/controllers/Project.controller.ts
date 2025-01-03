@@ -6,7 +6,7 @@ export class ProjectController {
 		const project = new Project(req.body);
 		try {
 			await project.save();
-			res.status(201).json(project);
+			res.status(201).json({ message: 'Proyecto Creado Correctamente', data: project });
 		} catch (error) {
 			res.status(500).json({ error: error.message });
 		}
@@ -15,20 +15,20 @@ export class ProjectController {
 	static async getAllProjects(_: Request, res: Response) {
 		try {
 			const projects = await Project.find({});
-			res.status(200).json(projects);
+			res.status(200).json({ message: 'Proyectos Encontrados', data: projects });
 		} catch (error) {
 			res.status(500).json({ error: error.message });
 		}
 	}
 
 	static async getProjectById(req: Request, res: Response) {
-		res.status(200).json(req.project);
+		res.status(200).json({ message: 'Proyecto Encontrado', data: req.project });
 	}
 
 	static async updateProject(req: Request, res: Response) {
 		try {
-			const projectUpdated = await req.project.updateOne(req.body, { returnDocument: 'after' });
-			res.status(200).json(projectUpdated);
+			const updatedProject = await Project.findByIdAndUpdate(req.project._id, req.body, { new: true });
+			res.status(200).json({ message: 'Proyecto Actualizado', data: updatedProject });
 		} catch (error) {
 			res.status(500).json({ error: error.message });
 		}
@@ -37,7 +37,7 @@ export class ProjectController {
 	static async deleteProject(req: Request, res: Response) {
 		try {
 			await req.project.deleteOne();
-			res.status(204).end();
+			res.status(204).json({ message: 'Proyecto Eliminado', data: null });
 		} catch (error) {
 			res.status(500).json({ error: error.message });
 		}

@@ -14,7 +14,7 @@ export class TaskController {
 			// Guardar cambios
 			await Promise.allSettled([task.save(), req.project.save()]);
 			// Responder con tarea creada
-			res.status(201).json(task);
+			res.status(201).json({ message: 'Tarea Creada Correctamente', data: task });
 		} catch (error) {
 			res.status(500).json({ error: error.message });
 		}
@@ -23,7 +23,7 @@ export class TaskController {
 	static async getAllTasks(req: Request, res: Response) {
 		try {
 			const tasks = await Task.find({ project: req.project.id });
-			res.status(200).json(tasks);
+			res.status(200).json({ message: 'Tareas Encontradas', data: tasks });
 		} catch (error) {
 			res.status(500).json({ error: error.message });
 		}
@@ -31,7 +31,7 @@ export class TaskController {
 
 	static async getTaskByID(req: Request, res: Response) {
 		try {
-			res.status(200).json(req.task);
+			res.status(200).json({ message: 'Tarea Encontrada', data: req.task });
 		} catch (error) {
 			res.status(500).json({ error: error.message });
 		}
@@ -45,7 +45,7 @@ export class TaskController {
 			req.task.status = req.body.status;
 			await req.task.save();
 
-			res.status(200).json(req.task);
+			res.status(200).json({ message: 'Tarea Actualizada Correctamente', data: req.task });
 		} catch (error) {
 			res.status(500).json({ error: error.message });
 		}
@@ -54,12 +54,9 @@ export class TaskController {
 	static async deleteTask(req: Request, res: Response) {
 		try {
 			// Guardamos el proyecto actualizado y eliminamos la tarea
-			await Promise.allSettled([
-				req.project.updateOne({ $pull: { tasks: req.task.id } }),
-				req.task.deleteOne()
-			]);
+			await Promise.allSettled([req.project.updateOne({ $pull: { tasks: req.task.id } }), req.task.deleteOne()]);
 
-			res.status(200).json({ message: 'Tarea Eliminada Correctamente' });
+			res.status(200).json({ message: 'Tarea Eliminada Correctamente', data: null });
 		} catch (error) {
 			res.status(500).json({ error: error.message });
 		}
@@ -67,19 +64,17 @@ export class TaskController {
 
 	static async updateTaskStatus(req: Request, res: Response) {
 		try {
-			const validStatuses = Object.values(taskStatus);
-
+			const validStatues = Object.values(taskStatus);
 			// Validar estado válido
-			if (!validStatuses.includes(req.body.status)) {
+			if (!validStatues.includes(req.body.status)) {
 				res.status(400).json({ error: 'Estado de tarea inválido' });
 				return;
 			}
-
 			// Actualizar estado de la tarea
 			req.task.status = req.body.status;
 			await req.task.save();
 
-			res.status(200).json(req.task);
+			res.status(200).json({ message: 'Estado de Tarea Actualizado Correctamente', data: req.task });
 		} catch (error) {
 			res.status(500).json({ error: error.message });
 		}
