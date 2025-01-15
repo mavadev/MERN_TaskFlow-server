@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
+import taskRoutes from './Task.routes';
 import { ProjectController } from '../controllers/Project.controller';
 import { checkForValidationErrors, checkProjectValidity } from '../middleware';
 
@@ -29,5 +30,8 @@ router
 		ProjectController.updateProject
 	)
 	.delete(ProjectController.deleteProject);
+
+// Tareas
+router.use('/:projectId/tasks', taskRoutes);
 
 export default router;

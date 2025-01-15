@@ -1,15 +1,11 @@
 import { Router } from 'express';
-import taskRoutes from './Task.routes';
+import authRoutes from './Auth.routes';
 import projectRoutes from './Project.routes';
-import { checkProjectValidity } from '../middleware';
 
 const router = Router();
 
-// Validaciones por param (projectId)
-router.param('projectId', checkProjectValidity);
-
 // Rutas
+router.use('/auth', authRoutes);
 router.use('/projects', projectRoutes);
-router.use('/projects/:projectId/tasks', taskRoutes);
 
 export default router;
