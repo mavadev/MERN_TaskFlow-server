@@ -2,7 +2,7 @@ import type { Request, Response } from 'express';
 import User from '../models/User.model';
 import Token from '../models/Token.model';
 import { AuthEmail } from '../emails/AuthEmail';
-import { hashPassword } from '../utils/auth';
+import { hashPassword, verifyPassword } from '../utils/auth';
 import { generateToken, decodedHashedToken } from '../utils/token';
 
 export class AuthController {
@@ -26,7 +26,7 @@ export class AuthController {
 			await Token.create({ token, user: user._id });
 
 			// Enviar email
-			AuthEmail.confirmAccount({
+			AuthEmail.sendConfirmationEmail({
 				user: user,
 				token: token,
 			});
@@ -66,7 +66,7 @@ export class AuthController {
 		}
 	};
 
-	// TODO: Controlador de prueba para verificar el token hasheado
+	// ? TODO: Controlador de prueba para verificar el token hasheado
 	static getTokenHashed = async (req: Request, res: Response) => {
 		try {
 			const { token } = req.query;
@@ -75,9 +75,57 @@ export class AuthController {
 			console.log('Token Codificado: ', token);
 			console.log('Contenido del token decodificado: ', decodedToken);
 
-			res.status(200).json({ message: 'Enlace válido' });
+			res.status(200).json({ token: token });
 		} catch (error) {
 			res.status(500).json({ error: 'Enlace no válido' });
+		}
+	};
+
+	static login = async (req: Request, res: Response) => {
+		try {
+			const { email, password } = req.body;
+
+			// Verificar si el usuario existe
+			const user = await User.findOne({ email });
+			if (!user) {
+				res.status(404).json({ error: 'Usuario no encontrado' });
+				return;
+			}
+
+			// Verificar contraseña
+			const isPasswordValid = await verifyPassword(password, user.password);
+			if (!isPasswordValid) {
+				res.status(401).json({ error: 'Contraseña incorrecta' });
+				return;
+			}
+
+			// Verificar usuario confirmado
+			if (!user.confirmed) {
+				// Verificar token existente
+				const tokenExists = await Token.findOne({ user: user._id });
+				if (tokenExists) {
+					await tokenExists.deleteOne();
+				}
+
+				// Generar token
+				const token = generateToken();
+				await Token.create({ token, user: user._id });
+
+				// Enviar email
+				AuthEmail.sendConfirmationEmail({
+					user: user,
+					token: token,
+				});
+
+				res
+					.status(401)
+					.json({ error: 'La cuenta no ha sido confirmada, se ha enviado un nuevo email para confirmar la cuenta' });
+				return;
+			}
+
+			res.status(200).json({ message: 'Inicio de sesión exitoso' });
+		} catch (error) {
+			res.status(500).json({ error: 'Error al iniciar sesión' });
 		}
 	};
 }

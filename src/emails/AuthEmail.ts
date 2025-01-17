@@ -8,7 +8,7 @@ interface IConfirmAccount {
 }
 
 export class AuthEmail {
-	static confirmAccount = async ({ user, token }: IConfirmAccount) => {
+	static sendConfirmationEmail = async ({ user, token }: IConfirmAccount) => {
 		const hashedToken = generateHashedToken({ user_id: user.id, token });
 
 		const email = await transport.sendMail({

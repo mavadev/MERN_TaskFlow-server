@@ -30,11 +30,20 @@ router.post(
 	AuthController.confirmAccount
 );
 
-// TODO: Ruta de prueba para verificar el token
+// ? TODO: Ruta de prueba para verificar el token
 router.get(
 	'/confirm-account',
 	query('token').notEmpty().withMessage('El token no debe ir vacío'),
 	checkForValidationErrors,
 	AuthController.getTokenHashed
 );
+
+router.post(
+	'/login',
+	body('email').notEmpty().withMessage('El email no debe ir vacío'),
+	body('password').notEmpty().withMessage('El password no debe ir vacío'),
+	checkForValidationErrors,
+	AuthController.login
+);
+
 export default router;
