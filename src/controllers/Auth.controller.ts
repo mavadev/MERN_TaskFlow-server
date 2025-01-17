@@ -3,6 +3,7 @@ import User from '../models/User.model';
 import Token from '../models/Token.model';
 import { hashPassword } from '../utils/auth';
 import { generateToken } from '../utils/token';
+import { AuthEmail } from '../emails/AuthEmail';
 
 export class AuthController {
 	static createAccount = async (req: Request, res: Response) => {
@@ -23,6 +24,12 @@ export class AuthController {
 			// Generar y guardar token
 			const token = generateToken();
 			await Token.create({ token, user: user._id });
+
+			AuthEmail.confirmAccount({
+				name: user.name,
+				email: user.email,
+				token: token,
+			});
 
 			res.status(201).json({ message: 'Cuenta creada correctamente', data: user });
 		} catch (error) {
