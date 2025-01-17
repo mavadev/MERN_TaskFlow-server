@@ -36,4 +36,32 @@ export class AuthController {
 			res.status(500).json({ error: 'Error al crear la cuenta' });
 		}
 	};
+
+	static confirmAccount = async (req: Request, res: Response) => {
+		try {
+			const { token, user_id } = req.body;
+
+			// Verificar si el usuario existe
+			const user = await User.findById(user_id);
+			if (!user) {
+				res.status(404).json({ error: 'Usuario no encontrado' });
+				return;
+			}
+
+			// Verificar token válido y perteneciente al usuario
+			const tokenExists = await Token.findOne({ token, user: user._id });
+			if (!tokenExists) {
+				res.status(404).json({ error: 'Token no válido' });
+				return;
+			}
+
+			// Confirmar cuenta y eliminar token
+			user.confirmed = true;
+			await Promise.allSettled([user.save(), tokenExists.deleteOne()]);
+
+			res.status(200).json({ message: 'Cuenta confirmada correctamente' });
+		} catch (error) {
+			res.status(500).json({ error: 'Error al confirmar la cuenta' });
+		}
+	};
 }

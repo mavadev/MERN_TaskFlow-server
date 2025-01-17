@@ -1,2 +1,1 @@
-export const generateToken = () =>
-	Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+export const generateToken = () => Math.floor(100000 + Math.random() * 900000).toString();

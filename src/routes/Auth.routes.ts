@@ -23,4 +23,12 @@ router.post(
 	AuthController.createAccount
 );
 
+router.post(
+	'/confirm-account',
+	body('token').notEmpty().withMessage('El token no debe ir vacío'),
+	body('user_id').notEmpty().withMessage('El user_id no debe ir vacío'),
+	checkForValidationErrors,
+	AuthController.confirmAccount
+);
+
 export default router;
