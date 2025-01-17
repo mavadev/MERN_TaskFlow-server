@@ -1,9 +1,9 @@
 import type { Request, Response } from 'express';
 import User from '../models/User.model';
 import Token from '../models/Token.model';
-import { hashPassword } from '../utils/auth';
-import { generateToken } from '../utils/token';
 import { AuthEmail } from '../emails/AuthEmail';
+import { hashPassword } from '../utils/auth';
+import { generateToken, decodedHashedToken } from '../utils/token';
 
 export class AuthController {
 	static createAccount = async (req: Request, res: Response) => {
@@ -21,13 +21,13 @@ export class AuthController {
 			const hashedPassword = await hashPassword(password);
 			const user = await User.create({ ...req.body, password: hashedPassword });
 
-			// Generar y guardar token
+			// Generar token para confirmar cuenta
 			const token = generateToken();
 			await Token.create({ token, user: user._id });
 
+			// Enviar email
 			AuthEmail.confirmAccount({
-				name: user.name,
-				email: user.email,
+				user: user,
 				token: token,
 			});
 
@@ -39,7 +39,8 @@ export class AuthController {
 
 	static confirmAccount = async (req: Request, res: Response) => {
 		try {
-			const { token, user_id } = req.body;
+			const { hashedToken } = req.body;
+			const { user_id, token } = decodedHashedToken(hashedToken);
 
 			// Verificar si el usuario existe
 			const user = await User.findById(user_id);
@@ -49,7 +50,7 @@ export class AuthController {
 			}
 
 			// Verificar token válido y perteneciente al usuario
-			const tokenExists = await Token.findOne({ token, user: user._id });
+			const tokenExists = await Token.findOne({ token: token, user: user_id });
 			if (!tokenExists) {
 				res.status(404).json({ error: 'Token no válido' });
 				return;
@@ -61,7 +62,22 @@ export class AuthController {
 
 			res.status(200).json({ message: 'Cuenta confirmada correctamente' });
 		} catch (error) {
-			res.status(500).json({ error: 'Error al confirmar la cuenta' });
+			res.status(500).json({ error: 'Token no válido' });
+		}
+	};
+
+	// TODO: Controlador de prueba para verificar el token hasheado
+	static getTokenHashed = async (req: Request, res: Response) => {
+		try {
+			const { token } = req.query;
+			const decodedToken = decodedHashedToken(token as string);
+
+			console.log('Token Codificado: ', token);
+			console.log('Contenido del token decodificado: ', decodedToken);
+
+			res.status(200).json({ message: 'Enlace válido' });
+		} catch (error) {
+			res.status(500).json({ error: 'Enlace no válido' });
 		}
 	};
 }

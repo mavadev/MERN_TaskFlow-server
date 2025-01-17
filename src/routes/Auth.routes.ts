@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { body } from 'express-validator';
+import { body, query } from 'express-validator';
 import { checkForValidationErrors } from '../middleware';
 import { AuthController } from '../controllers/Auth.controller';
 
@@ -25,10 +25,16 @@ router.post(
 
 router.post(
 	'/confirm-account',
-	body('token').notEmpty().withMessage('El token no debe ir vacío'),
-	body('user_id').notEmpty().withMessage('El user_id no debe ir vacío'),
+	body('hashedToken').notEmpty().withMessage('El token no debe ir vacío'),
 	checkForValidationErrors,
 	AuthController.confirmAccount
 );
 
+// TODO: Ruta de prueba para verificar el token
+router.get(
+	'/confirm-account',
+	query('token').notEmpty().withMessage('El token no debe ir vacío'),
+	checkForValidationErrors,
+	AuthController.getTokenHashed
+);
 export default router;
