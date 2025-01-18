@@ -40,10 +40,17 @@ router.post(
 );
 
 router.post(
-	'/resend-code',
+	'/request-code',
 	body('email').notEmpty().withMessage('El email no debe ir vacío'),
 	checkForValidationErrors,
-	AuthController.resendCode
+	AuthController.requestCode
+);
+
+router.post(
+	'/request-new-password',
+	body('email').notEmpty().withMessage('El email no debe ir vacío'),
+	checkForValidationErrors,
+	AuthController.requestNewPassword
 );
 
 export default router;

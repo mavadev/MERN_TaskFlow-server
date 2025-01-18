@@ -35,34 +35,6 @@ export class AuthController {
 		}
 	};
 
-	static confirmAccount = async (req: Request, res: Response) => {
-		try {
-			const { email, token } = req.body;
-
-			// Verificar si el usuario existe
-			const user = await User.findOne({ email });
-			if (!user) {
-				res.status(404).json({ error: 'El usuario no existe' });
-				return;
-			}
-
-			// Verificar token válido y perteneciente al usuario
-			const tokenExists = await Token.findOne({ token: token, user: user.id });
-			if (!tokenExists) {
-				res.status(404).json({ error: 'El token no es válido' });
-				return;
-			}
-
-			// Confirmar cuenta y eliminar token
-			user.confirmed = true;
-			await Promise.allSettled([user.save(), tokenExists.deleteOne()]);
-
-			res.status(200).json({ message: 'Cuenta confirmada correctamente' });
-		} catch (error) {
-			res.status(500).json({ error: 'Error al confirmar la cuenta' });
-		}
-	};
-
 	static login = async (req: Request, res: Response) => {
 		try {
 			const { email, password } = req.body;
@@ -108,7 +80,41 @@ export class AuthController {
 		}
 	};
 
-	static resendCode = async (req: Request, res: Response) => {
+	static confirmAccount = async (req: Request, res: Response) => {
+		try {
+			const { email, token } = req.body;
+
+			// Verificar si el usuario existe
+			const user = await User.findOne({ email });
+			if (!user) {
+				res.status(404).json({ error: 'El usuario no existe' });
+				return;
+			}
+
+			// Verificar si el usuario ya está confirmado
+			if (user.confirmed) {
+				res.status(400).json({ error: 'El usuario ya está confirmado' });
+				return;
+			}
+
+			// Verificar token válido y perteneciente al usuario
+			const tokenExists = await Token.findOne({ token: token, user: user.id });
+			if (!tokenExists) {
+				res.status(404).json({ error: 'El token no es válido' });
+				return;
+			}
+
+			// Confirmar cuenta y eliminar token
+			user.confirmed = true;
+			await Promise.allSettled([user.save(), tokenExists.deleteOne()]);
+
+			res.status(200).json({ message: 'Cuenta confirmada correctamente' });
+		} catch (error) {
+			res.status(500).json({ error: 'Error al confirmar la cuenta' });
+		}
+	};
+
+	static requestCode = async (req: Request, res: Response) => {
 		try {
 			const { email } = req.body;
 
@@ -116,6 +122,12 @@ export class AuthController {
 			const user = await User.findOne({ email });
 			if (!user) {
 				res.status(404).json({ error: 'El usuario no existe' });
+				return;
+			}
+
+			// Verificar si el usuario ya está confirmado
+			if (user.confirmed) {
+				res.status(400).json({ error: 'El usuario ya está confirmado' });
 				return;
 			}
 
@@ -131,6 +143,30 @@ export class AuthController {
 			AuthEmail.sendConfirmationEmail({ user, token });
 
 			res.status(200).json({ message: 'Se ha reenviado el código correctamente' });
+		} catch (error) {
+			res.status(500).json({ error: 'Error al reenviar el código' });
+		}
+	};
+
+	static requestNewPassword = async (req: Request, res: Response) => {
+		try {
+			const { email } = req.body;
+
+			// Verificar si el usuario existe
+			const user = await User.findOne({ email });
+			if (!user) {
+				res.status(404).json({ error: 'El usuario no existe' });
+				return;
+			}
+
+			// Generar token para cambiar contraseña
+			const token = generateToken();
+			await Token.create({ token, user: user._id });
+
+			// Enviar email de cambio de contraseña
+			AuthEmail.sendCodeForNewPassword({ user, token });
+
+			res.status(200).json({ message: 'Se ha reenviado el correo correctamente' });
 		} catch (error) {
 			res.status(500).json({ error: 'Error al reenviar el código' });
 		}

@@ -25,4 +25,21 @@ export class AuthEmail {
 
 		console.log('Mensaje enviado', email.messageId);
 	};
+
+	static sendCodeForNewPassword = async ({ user, token }: IConfirmAccount) => {
+		const email = await transport.sendMail({
+			from: 'TaskFlow <no-reply@taskflow.com>',
+			to: user.email,
+			subject: 'TaskFlow -Cambia tu contraseña',
+			text: 'TaskFlow -Cambia tu contraseña',
+			html: `<p>Hola <b>${user.name}</b>, has solicitado un cambio de contraseña en TaskFlow</p>
+				<p>Te hemos enviado un código de seguridad para cambiar tu contraseña</p><br>
+				<p>Código de confirmación:</p>
+				<p><b>${token}</b></p>
+				<p>Este código expira en <b><i>10 minutos</i></b>.</p><br>
+				<p>Si no solicitaste este cambio, por favor ignora este mensaje.</p>`,
+		});
+
+		console.log('Mensaje enviado', email.messageId);
+	};
 }
