@@ -13,7 +13,7 @@ export class AuthController {
 			// Verificar si el usuario existe
 			const existingUser = await User.findOne({ email });
 			if (existingUser) {
-				res.status(409).json({ error: 'El usuario ya existe' });
+				res.status(409).json({ error: 'El usuario ya está registrado' });
 				return;
 			}
 
@@ -31,7 +31,7 @@ export class AuthController {
 				token: token,
 			});
 
-			res.status(201).json({ message: 'Cuenta creada correctamente', data: user });
+			res.status(201).json({ message: 'Cuenta creada, revise su correo para confirmar su cuenta', data: user });
 		} catch (error) {
 			res.status(500).json({ error: 'Error al crear la cuenta' });
 		}
@@ -39,8 +39,7 @@ export class AuthController {
 
 	static confirmAccount = async (req: Request, res: Response) => {
 		try {
-			const { hashedToken } = req.body;
-			const { user_id, token } = decodedHashedToken(hashedToken);
+			const { user: user_id, token } = req.body;
 
 			// Verificar si el usuario existe
 			const user = await User.findById(user_id);
