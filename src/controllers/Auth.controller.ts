@@ -159,6 +159,10 @@ export class AuthController {
 				return;
 			}
 
+			// Verificar token existente
+			const tokenExists = await Token.findOne({ user: user._id });
+			if (tokenExists) await tokenExists.deleteOne();
+
 			// Generar token para cambiar contraseña
 			const token = generateToken();
 			await Token.create({ token, user: user._id });
@@ -169,6 +173,33 @@ export class AuthController {
 			res.status(200).json({ message: 'Se ha reenviado el correo correctamente' });
 		} catch (error) {
 			res.status(500).json({ error: 'Error al reenviar el código' });
+		}
+	};
+
+	static confirmNewPassword = async (req: Request, res: Response) => {
+		try {
+			const { email, token } = req.body;
+
+			// Verificar si el usuario existe
+			const user = await User.findOne({ email });
+			if (!user) {
+				res.status(404).json({ error: 'El usuario no existe' });
+				return;
+			}
+
+			// Verificar token válido y perteneciente al usuario
+			const tokenExists = await Token.findOne({ token: token, user: user.id });
+			if (!tokenExists) {
+				res.status(404).json({ error: 'El token no es válido' });
+				return;
+			}
+
+			// Eliminar token
+			await tokenExists.deleteOne();
+
+			res.status(200).json({ message: 'Código correcto' });
+		} catch (error) {
+			res.status(500).json({ error: 'Error al confirmar la contraseña' });
 		}
 	};
 }

@@ -53,4 +53,12 @@ router.post(
 	AuthController.requestNewPassword
 );
 
+router.post(
+	'/confirm-new-password',
+	body('email').notEmpty().withMessage('El email no debe ir vacío'),
+	body('token').notEmpty().withMessage('El código no debe ir vacío'),
+	checkForValidationErrors,
+	AuthController.confirmNewPassword
+);
+
 export default router;
