@@ -1,4 +1,3 @@
-import { isValidObjectId } from 'mongoose';
 import type { Request, Response } from 'express';
 
 import User from '../models/User.model';
@@ -28,10 +27,7 @@ export class AuthController {
 			await Token.create({ token, user: user._id });
 
 			// Enviar email
-			AuthEmail.sendConfirmationEmail({
-				user: user,
-				token: token,
-			});
+			AuthEmail.sendConfirmationEmail({ user, token });
 
 			res.status(201).json({ message: 'Cuenta creada, revise su correo para confirmar su cuenta', data: user });
 		} catch (error) {
@@ -98,10 +94,7 @@ export class AuthController {
 				await Token.create({ token, user: user._id });
 
 				// Enviar email
-				AuthEmail.sendConfirmationEmail({
-					user: user,
-					token: token,
-				});
+				AuthEmail.sendConfirmationEmail({ user, token });
 
 				res
 					.status(401)
@@ -112,6 +105,34 @@ export class AuthController {
 			res.status(200).json({ message: 'Se ha iniciado sesión correctamente' });
 		} catch (error) {
 			res.status(500).json({ error: 'Error al iniciar sesión' });
+		}
+	};
+
+	static resendCode = async (req: Request, res: Response) => {
+		try {
+			const { email } = req.body;
+
+			// Verificar si el usuario existe
+			const user = await User.findOne({ email });
+			if (!user) {
+				res.status(404).json({ error: 'El usuario no existe' });
+				return;
+			}
+
+			// Verificar token existente
+			const tokenExists = await Token.findOne({ user: user._id });
+			if (tokenExists) await tokenExists.deleteOne();
+
+			// Generar token
+			const token = generateToken();
+			await Token.create({ token, user: user._id });
+
+			// Enviar email
+			AuthEmail.sendConfirmationEmail({ user, token });
+
+			res.status(200).json({ message: 'Se ha reenviado el código correctamente' });
+		} catch (error) {
+			res.status(500).json({ error: 'Error al reenviar el código' });
 		}
 	};
 }

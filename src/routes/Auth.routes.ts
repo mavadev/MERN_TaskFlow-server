@@ -24,6 +24,14 @@ router.post(
 );
 
 router.post(
+	'/login',
+	body('email').notEmpty().withMessage('El email no debe ir vacío'),
+	body('password').notEmpty().withMessage('El password no debe ir vacío'),
+	checkForValidationErrors,
+	AuthController.login
+);
+
+router.post(
 	'/confirm-account',
 	body('email').notEmpty().withMessage('El email no debe ir vacío'),
 	body('token').notEmpty().withMessage('El código no debe ir vacío'),
@@ -32,11 +40,10 @@ router.post(
 );
 
 router.post(
-	'/login',
+	'/resend-code',
 	body('email').notEmpty().withMessage('El email no debe ir vacío'),
-	body('password').notEmpty().withMessage('El password no debe ir vacío'),
 	checkForValidationErrors,
-	AuthController.login
+	AuthController.resendCode
 );
 
 export default router;
