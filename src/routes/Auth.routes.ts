@@ -61,4 +61,12 @@ router.post(
 	AuthController.confirmNewPassword
 );
 
+router.post(
+	'/reset-password',
+	body('email').notEmpty().withMessage('El email no debe ir vacío'),
+	body('password').notEmpty().withMessage('El password no debe ir vacío'),
+	checkForValidationErrors,
+	AuthController.resetPassword
+);
+
 export default router;

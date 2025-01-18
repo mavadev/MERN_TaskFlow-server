@@ -202,4 +202,26 @@ export class AuthController {
 			res.status(500).json({ error: 'Error al confirmar la contraseña' });
 		}
 	};
+
+	static resetPassword = async (req: Request, res: Response) => {
+		try {
+			const { email, password } = req.body;
+
+			// Verificar si el usuario existe
+			const user = await User.findOne({ email });
+			if (!user) {
+				res.status(404).json({ error: 'El usuario no existe' });
+				return;
+			}
+
+			// Actualizar contraseña
+			const hashedPassword = await hashPassword(password);
+			user.password = hashedPassword;
+			await user.save();
+
+			res.status(200).json({ message: 'Contraseña actualizada correctamente' });
+		} catch (error) {
+			res.status(500).json({ error: 'Error al cambiar la contraseña' });
+		}
+	};
 }
