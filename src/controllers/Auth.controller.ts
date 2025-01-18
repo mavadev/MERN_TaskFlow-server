@@ -1,9 +1,11 @@
+import { isValidObjectId } from 'mongoose';
 import type { Request, Response } from 'express';
+
 import User from '../models/User.model';
 import Token from '../models/Token.model';
 import { AuthEmail } from '../emails/AuthEmail';
+import { generateToken } from '../utils/token';
 import { hashPassword, verifyPassword } from '../utils/auth';
-import { generateToken, decodedHashedToken } from '../utils/token';
 
 export class AuthController {
 	static createAccount = async (req: Request, res: Response) => {
@@ -39,19 +41,19 @@ export class AuthController {
 
 	static confirmAccount = async (req: Request, res: Response) => {
 		try {
-			const { user: user_id, token } = req.body;
+			const { email, token } = req.body;
 
 			// Verificar si el usuario existe
-			const user = await User.findById(user_id);
+			const user = await User.findOne({ email });
 			if (!user) {
-				res.status(404).json({ error: 'Usuario no encontrado' });
+				res.status(404).json({ error: 'El usuario no existe' });
 				return;
 			}
 
 			// Verificar token válido y perteneciente al usuario
-			const tokenExists = await Token.findOne({ token: token, user: user_id });
+			const tokenExists = await Token.findOne({ token: token, user: user.id });
 			if (!tokenExists) {
-				res.status(404).json({ error: 'Token no válido' });
+				res.status(404).json({ error: 'El token no es válido' });
 				return;
 			}
 
@@ -61,22 +63,7 @@ export class AuthController {
 
 			res.status(200).json({ message: 'Cuenta confirmada correctamente' });
 		} catch (error) {
-			res.status(500).json({ error: 'Token no válido' });
-		}
-	};
-
-	// ? TODO: Controlador de prueba para verificar el token hasheado
-	static getTokenHashed = async (req: Request, res: Response) => {
-		try {
-			const { token } = req.query;
-			const decodedToken = decodedHashedToken(token as string);
-
-			console.log('Token Codificado: ', token);
-			console.log('Contenido del token decodificado: ', decodedToken);
-
-			res.status(200).json({ token: token });
-		} catch (error) {
-			res.status(500).json({ error: 'Enlace no válido' });
+			res.status(500).json({ error: 'Error al confirmar la cuenta' });
 		}
 	};
 
@@ -87,14 +74,14 @@ export class AuthController {
 			// Verificar si el usuario existe
 			const user = await User.findOne({ email });
 			if (!user) {
-				res.status(404).json({ error: 'Usuario no encontrado' });
+				res.status(404).json({ error: 'El usuario no existe' });
 				return;
 			}
 
 			// Verificar contraseña
 			const isPasswordValid = await verifyPassword(password, user.password);
 			if (!isPasswordValid) {
-				res.status(401).json({ error: 'Contraseña incorrecta' });
+				res.status(401).json({ error: 'La contraseña es incorrecta' });
 				return;
 			}
 
@@ -122,7 +109,7 @@ export class AuthController {
 				return;
 			}
 
-			res.status(200).json({ message: 'Inicio de sesión exitoso' });
+			res.status(200).json({ message: 'Se ha iniciado sesión correctamente' });
 		} catch (error) {
 			res.status(500).json({ error: 'Error al iniciar sesión' });
 		}

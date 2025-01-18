@@ -25,7 +25,7 @@ router.post(
 
 router.post(
 	'/confirm-account',
-	body('user').notEmpty().withMessage('El usuario no debe ir vacío'),
+	body('email').notEmpty().withMessage('El email no debe ir vacío'),
 	body('token').notEmpty().withMessage('El código no debe ir vacío'),
 	checkForValidationErrors,
 	AuthController.confirmAccount

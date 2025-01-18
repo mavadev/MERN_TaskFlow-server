@@ -15,11 +15,11 @@ export class AuthEmail {
 			to: user.email,
 			subject: 'TaskFlow -Confirma tu cuenta',
 			text: 'TaskFlow -Confirma tu cuenta',
-			html: `<p>Hola <b>${user.name}</b>, has creado tu cuenta en TaskFlow</p><br>
-				<p>Código de confirmación: ${token}</p>
-				<p>Para confirmar tu cuenta, ingresa en el siguiente enlace: 
-					<a href="${process.env.FRONTEND_URL}/auth/confirm-account?user=${user.id}">Confirmar cuenta</a></p><br>
-				<p>Este código expira en 10 minutos.</p><br>
+			html: `<p>Hola <b>${user.name}</b>, has creado tu cuenta en TaskFlow</p>
+				<p>Te hemos enviado un código de seguridad para confirmar tu cuenta</p><br>
+				<p>Código de confirmación:</p>
+				<p><b>${token}</b></p>
+				<p>Este código expira en <b><i>10 minutos</i></b>.</p><br>
 				<p>Si no solicitaste este cambio, por favor ignora este mensaje.</p>`,
 		});
 
