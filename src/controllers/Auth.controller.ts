@@ -194,18 +194,15 @@ export class AuthController {
 				return;
 			}
 
-			// Eliminar token
-			await tokenExists.deleteOne();
-
-			res.status(200).json({ message: 'Código correcto' });
+			res.status(200).json({ message: 'Token válido' });
 		} catch (error) {
-			res.status(500).json({ error: 'Error al confirmar la contraseña' });
+			res.status(500).json({ error: 'Error al validar el token' });
 		}
 	};
 
 	static resetPassword = async (req: Request, res: Response) => {
 		try {
-			const { email, password } = req.body;
+			const { token, email, password } = req.body;
 
 			// Verificar si el usuario existe
 			const user = await User.findOne({ email });
@@ -214,10 +211,19 @@ export class AuthController {
 				return;
 			}
 
+			// Verificar token válido y perteneciente al usuario
+			const tokenExists = await Token.findOne({ token: token, user: user.id });
+			if (!tokenExists) {
+				res.status(404).json({ error: 'El token no es válido' });
+				return;
+			}
+
 			// Actualizar contraseña
 			const hashedPassword = await hashPassword(password);
 			user.password = hashedPassword;
-			await user.save();
+
+			// Eliminar token y guardar usuario
+			await Promise.allSettled([user.save(), tokenExists.deleteOne()]);
 
 			res.status(200).json({ message: 'Contraseña actualizada correctamente' });
 		} catch (error) {

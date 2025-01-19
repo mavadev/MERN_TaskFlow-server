@@ -63,6 +63,7 @@ router.post(
 
 router.post(
 	'/reset-password',
+	body('token').notEmpty().withMessage('El token no debe ir vacío'),
 	body('email').notEmpty().withMessage('El email no debe ir vacío'),
 	body('password').notEmpty().withMessage('El password no debe ir vacío'),
 	checkForValidationErrors,
