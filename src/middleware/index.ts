@@ -1,7 +1,9 @@
 import type { Request, Response, NextFunction } from 'express';
-import { validationResult } from 'express-validator';
+import { check, validationResult } from 'express-validator';
 import { isValidObjectId } from 'mongoose';
 
+import { decodedJWT } from '../utils/jwt';
+import User, { IUser } from '../models/User.model';
 import Task, { ITask } from '../models/Task.model';
 import Project, { IProject } from '../models/Project.model';
 
@@ -10,9 +12,51 @@ declare global {
 		interface Request {
 			project: IProject;
 			task: ITask;
+			user: IUser;
 		}
 	}
 }
+
+export const authenticate = async (req: Request, res: Response, next: NextFunction) => {
+	const bearerToken = req.headers.authorization;
+
+	if (!bearerToken) {
+		res.status(401).json({ error: 'No autorizado' });
+		return;
+	}
+
+	const [, token] = bearerToken?.split(' ');
+	try {
+		// Decodificar token
+		const decodedToken = decodedJWT(token);
+
+		// Buscar usuario
+		const user = await User.findById(decodedToken.user_id).select('name email');
+
+		if (!user) {
+			res.status(401).json({ error: 'Token no válido' });
+			return;
+		}
+
+		req.user = user;
+		next();
+	} catch (error) {
+		res.status(500).json({ error: error.message });
+	}
+};
+
+export const checkUserValidity = async (req: Request, res: Response, next: NextFunction) => {
+	// Validar email
+	check('email').isEmail().withMessage('Email no válido')(req, res, errors => {
+		if (errors) return res.status(400).json({ errors: errors.array() });
+	});
+
+	// Obtener usuario
+	const user = await User.findOne({ email: req.body.email });
+
+	req.user = user;
+	next();
+};
 
 export const checkProjectValidity = async (req: Request, res: Response, next: NextFunction) => {
 	try {
