@@ -224,4 +224,8 @@ export class AuthController {
 			res.status(500).json({ error: 'Error al cambiar la contraseña' });
 		}
 	};
+
+	static getUser = async (req: Request, res: Response) => {
+		res.status(200).json({ data: req.user });
+	};
 }

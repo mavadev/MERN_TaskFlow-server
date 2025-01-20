@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
-import { checkForValidationErrors } from '../middleware';
+import { authenticate, checkForValidationErrors, checkUserValidity } from '../middleware';
 import { AuthController } from '../controllers/Auth.controller';
 
 const router = Router();
@@ -14,6 +14,7 @@ const validatePasswordConfirmation = (value, { req }) => {
 
 router.post(
 	'/register',
+	checkUserValidity,
 	body('name').notEmpty().withMessage('El nombre no debe ir vacío'),
 	body('password').isLength({ min: 8 }).withMessage('El password debe ser de mínimo 8 caracteres'),
 	body('password_confirmation')
@@ -26,6 +27,7 @@ router.post(
 
 router.post(
 	'/login',
+	checkUserValidity,
 	body('password').notEmpty().withMessage('El password no debe ir vacío'),
 	checkForValidationErrors,
 	AuthController.login
@@ -33,6 +35,7 @@ router.post(
 
 router.post(
 	'/confirm-account',
+	checkUserValidity,
 	body('token').notEmpty().withMessage('El código no debe ir vacío'),
 	checkForValidationErrors,
 	AuthController.confirmAccount
@@ -40,16 +43,19 @@ router.post(
 
 router.post(
 	'/request-code-confirmation',
+	checkUserValidity,
 	AuthController.requestCodeConfirmation
 );
 
 router.post(
 	'/request-code-password',
+	checkUserValidity,
 	AuthController.requestCodePassword
 );
 
 router.post(
 	'/validate-code-password',
+	checkUserValidity,
 	body('token').notEmpty().withMessage('El código no debe ir vacío'),
 	checkForValidationErrors,
 	AuthController.validateCodePassword
@@ -57,10 +63,13 @@ router.post(
 
 router.post(
 	'/reset-password',
+	checkUserValidity,
 	body('token').notEmpty().withMessage('El token no debe ir vacío'),
 	body('password').notEmpty().withMessage('El password no debe ir vacío'),
 	checkForValidationErrors,
 	AuthController.resetPassword
 );
+
+router.get('/user', authenticate, AuthController.getUser);
 
 export default router;
