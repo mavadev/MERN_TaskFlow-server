@@ -6,7 +6,7 @@ export interface UserPayload {
 }
 
 export const generateJWT = (userPayload: UserPayload) => {
-	const options = { expiresIn: '10m' };
+	const options = { expiresIn: '1d' };
 	return jwt.sign(userPayload, process.env.JWT_SECRET, options);
 };
 

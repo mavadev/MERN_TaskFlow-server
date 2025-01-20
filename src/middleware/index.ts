@@ -74,6 +74,12 @@ export const checkProjectValidity = async (req: Request, res: Response, next: Ne
 			return;
 		}
 
+		// Validar que el proyecto pertenezca al usuario
+		if (project.manager.toString() !== req.user.id) {
+			res.status(401).json({ error: 'Acción no permitida' });
+			return;
+		}
+
 		// Asignar proyecto al request
 		req.project = project;
 		next();
