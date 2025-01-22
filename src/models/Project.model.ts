@@ -9,6 +9,7 @@ export interface IProject extends Document {
 	description: string;
 	tasks: PopulatedDoc<ITask & Document>[];
 	manager: PopulatedDoc<IUser & Document>;
+	team: PopulatedDoc<IUser & Document>[];
 }
 
 // Esquema del modelo
@@ -19,6 +20,7 @@ const ProjectSchema: Schema = new Schema(
 		description: { type: String, required: true, trim: true },
 		tasks: [{ type: Types.ObjectId, ref: 'Task' }],
 		manager: { type: Types.ObjectId, ref: 'User', required: true },
+		team: [{ type: Types.ObjectId, ref: 'User' }],
 	},
 	{ timestamps: true }
 );

@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
 import taskRoutes from './Task.routes';
+import teamRoutes from './Team.routes';
 import { ProjectController } from '../controllers/Project.controller';
 import { checkForValidationErrors, checkProjectValidity } from '../middleware';
 
@@ -33,5 +34,8 @@ router
 
 // Tareas
 router.use('/:projectId/tasks', taskRoutes);
+
+// Equipo
+router.use('/:projectId/team', teamRoutes);
 
 export default router;
