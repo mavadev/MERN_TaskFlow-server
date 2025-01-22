@@ -13,4 +13,6 @@ router.post(
 	TeamController.addMember
 );
 
+router.get('/', TeamController.getTeam);
+
 export default router;

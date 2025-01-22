@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express';
 import User from '../models/User.model';
+import Project from '../models/Project.model';
 
 export class TeamController {
 	static addMember = async (req: Request, res: Response) => {
@@ -30,6 +31,19 @@ export class TeamController {
 			await req.project.save();
 
 			res.status(200).json({ message: 'Usuario agregado al equipo correctamente' });
+		} catch (error) {
+			res.status(500).json({ error: error.message });
+		}
+	};
+
+	static getTeam = async (req: Request, res: Response) => {
+		try {
+			const project = await Project.findById(req.project.id).populate({
+				path: 'team',
+				select: 'id name email',
+			});
+
+			res.status(200).json(project.team);
 		} catch (error) {
 			res.status(500).json({ error: error.message });
 		}
