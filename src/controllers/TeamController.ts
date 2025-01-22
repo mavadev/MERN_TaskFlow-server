@@ -48,4 +48,24 @@ export class TeamController {
 			res.status(500).json({ error: error.message });
 		}
 	};
+
+	static removeMember = async (req: Request, res: Response) => {
+		try {
+			const { userId } = req.params;
+
+			// Verificar que exista en el equipo
+			if (!req.project.team.some(team => team.toString() === userId)) {
+				res.status(404).json({ error: 'Usuario no encontrado en el equipo' });
+				return;
+			}
+
+			// Eliminar el usuario del equipo
+			req.project.team = req.project.team.filter(team => team.toString() !== userId);
+
+			await req.project.save();
+			res.status(200).json({ message: 'Usuario eliminado del equipo correctamente' });
+		} catch (error) {
+			res.status(500).json({ error: error.message });
+		}
+	};
 }

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { body } from 'express-validator';
+import { body, param } from 'express-validator';
 
 import { checkForValidationErrors } from '../middleware';
 import { TeamController } from '../controllers/TeamController';
@@ -14,5 +14,12 @@ router.post(
 );
 
 router.get('/', TeamController.getTeam);
+
+router.delete(
+	'/:userId',
+	param('userId').isMongoId().notEmpty().withMessage('El ID del Usuario es Obligatorio'),
+	checkForValidationErrors,
+	TeamController.removeMember
+);
 
 export default router;
