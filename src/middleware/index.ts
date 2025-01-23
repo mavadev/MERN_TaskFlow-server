@@ -13,6 +13,7 @@ declare global {
 			project: IProject;
 			task: ITask;
 			user: IUser;
+			preUser: IUser;
 		}
 	}
 }
@@ -51,10 +52,10 @@ export const checkUserValidity = async (req: Request, res: Response, next: NextF
 		if (errors) return res.status(400).json({ errors: errors.array() });
 	});
 
-	// Obtener usuario
+	// Buscar usuario
 	const user = await User.findOne({ email: req.body.email });
 
-	req.user = user;
+	req.preUser = user;
 	next();
 };
 

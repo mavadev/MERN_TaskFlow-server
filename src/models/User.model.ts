@@ -9,24 +9,13 @@ export interface IUser extends Document {
 
 const UserSchema: Schema = new Schema(
 	{
-		name: {
-			type: String,
-			required: true,
-		},
-		email: {
-			type: String,
-			required: true,
-			lowercase: true,
-			unique: true,
-		},
-		password: {
-			type: String,
-			required: true,
-		},
-		confirmed: {
-			type: Boolean,
-			default: false,
-		},
+		name: { type: String, required: true },
+		email: { type: String, required: true, lowercase: true, unique: true },
+		password: { type: String, required: true },
+		confirmed: { type: Boolean, default: false },
+		avatar: { type: String, default: '/images/default-avatar.jpg' },
+		username: { type: String, required: true, unique: true },
+		description: { type: String, default: '', maxlength: 160 },
 	},
 	{ timestamps: true }
 );

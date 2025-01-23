@@ -11,17 +11,22 @@ import { hashPassword, verifyPassword } from '../utils/auth';
 export class AuthController {
 	static createAccount = async (req: Request, res: Response) => {
 		try {
-			const { password } = req.body;
+			const { email, password } = req.body;
 
 			// Verificar si el usuario existe
-			if (req.user) {
+			if (req.preUser) {
 				res.status(409).json({ error: 'El usuario ya está registrado' });
 				return;
 			}
 
-			// Crear y guardar usuario
+			// Hashear contraseña
 			const hashedPassword = await hashPassword(password);
-			const user = await User.create({ ...req.body, password: hashedPassword });
+
+			// Asignar username
+			const username = email.split('@')[0];
+
+			// Crear y guardar usuario
+			const user = await User.create({ ...req.body, password: hashedPassword, username });
 
 			// Generar token para confirmar cuenta
 			const token = generateToken();
@@ -41,32 +46,32 @@ export class AuthController {
 			const { password } = req.body;
 
 			// Verificar si el usuario existe
-			if (!req.user) {
+			if (!req.preUser) {
 				res.status(404).json({ error: 'El usuario no existe' });
 				return;
 			}
 
 			// Verificar contraseña
-			const isPasswordValid = await verifyPassword(password, req.user.password);
+			const isPasswordValid = await verifyPassword(password, req.preUser.password);
 			if (!isPasswordValid) {
 				res.status(401).json({ error: 'La contraseña es incorrecta' });
 				return;
 			}
 
 			// Verificar usuario confirmado
-			if (!req.user.confirmed) {
+			if (!req.preUser.confirmed) {
 				// Verificar token existente
-				const tokenExists = await Token.findOne({ user: req.user._id });
+				const tokenExists = await Token.findOne({ user: req.preUser._id });
 				if (tokenExists) {
 					await tokenExists.deleteOne();
 				}
 
 				// Generar token
 				const token = generateToken();
-				await Token.create({ token, user: req.user._id });
+				await Token.create({ token, user: req.preUser._id });
 
 				// Enviar email
-				AuthEmail.sendConfirmationEmail({ user: req.user, token });
+				AuthEmail.sendConfirmationEmail({ user: req.preUser, token });
 
 				res
 					.status(401)
@@ -75,7 +80,7 @@ export class AuthController {
 			}
 
 			// Generar token de sesión
-			const sessionToken = generateJWT({ user_id: req.user.id });
+			const sessionToken = generateJWT({ user_id: req.preUser.id });
 
 			res.status(200).json({ message: 'Se ha iniciado sesión correctamente', data: sessionToken });
 		} catch (error) {
@@ -88,27 +93,27 @@ export class AuthController {
 			const { token } = req.body;
 
 			// Verificar si el usuario existe
-			if (!req.user) {
+			if (!req.preUser) {
 				res.status(404).json({ error: 'El usuario no existe' });
 				return;
 			}
 
 			// Verificar si el usuario ya está confirmado
-			if (req.user.confirmed) {
+			if (req.preUser.confirmed) {
 				res.status(400).json({ error: 'El usuario ya está confirmado' });
 				return;
 			}
 
 			// Verificar token válido y perteneciente al usuario
-			const tokenExists = await Token.findOne({ token: token, user: req.user.id });
+			const tokenExists = await Token.findOne({ token: token, user: req.preUser.id });
 			if (!tokenExists) {
 				res.status(404).json({ error: 'El token no es válido' });
 				return;
 			}
 
 			// Confirmar cuenta y eliminar token
-			req.user.confirmed = true;
-			await Promise.allSettled([req.user.save(), tokenExists.deleteOne()]);
+			req.preUser.confirmed = true;
+			await Promise.allSettled([req.preUser.save(), tokenExists.deleteOne()]);
 
 			res.status(200).json({ message: 'Cuenta confirmada correctamente' });
 		} catch (error) {
@@ -119,27 +124,27 @@ export class AuthController {
 	static requestCodeConfirmation = async (req: Request, res: Response) => {
 		try {
 			// Verificar si el usuario existe
-			if (!req.user) {
+			if (!req.preUser) {
 				res.status(404).json({ error: 'El usuario no existe' });
 				return;
 			}
 
 			// Verificar si el usuario ya está confirmado
-			if (req.user.confirmed) {
+			if (req.preUser.confirmed) {
 				res.status(400).json({ error: 'El usuario ya está confirmado' });
 				return;
 			}
 
 			// Verificar token existente
-			const tokenExists = await Token.findOne({ user: req.user._id });
+			const tokenExists = await Token.findOne({ user: req.preUser._id });
 			if (tokenExists) await tokenExists.deleteOne();
 
 			// Generar token
 			const token = generateToken();
-			await Token.create({ token, user: req.user._id });
+			await Token.create({ token, user: req.preUser._id });
 
 			// Enviar email
-			AuthEmail.sendConfirmationEmail({ user: req.user, token });
+			AuthEmail.sendConfirmationEmail({ user: req.preUser, token });
 
 			res.status(200).json({ message: 'Se ha reenviado el código correctamente' });
 		} catch (error) {
@@ -150,21 +155,21 @@ export class AuthController {
 	static requestCodePassword = async (req: Request, res: Response) => {
 		try {
 			// Verificar si el usuario existe
-			if (!req.user) {
+			if (!req.preUser) {
 				res.status(404).json({ error: 'El usuario no existe' });
 				return;
 			}
 
 			// Verificar token existente
-			const tokenExists = await Token.findOne({ user: req.user._id });
+			const tokenExists = await Token.findOne({ user: req.preUser._id });
 			if (tokenExists) await tokenExists.deleteOne();
 
 			// Generar token para cambiar contraseña
 			const token = generateToken();
-			await Token.create({ token, user: req.user._id });
+			await Token.create({ token, user: req.preUser._id });
 
 			// Enviar email de cambio de contraseña
-			AuthEmail.sendCodeForNewPassword({ user: req.user, token });
+			AuthEmail.sendCodeForNewPassword({ user: req.preUser, token });
 
 			res.status(200).json({ message: 'Se ha reenviado el correo correctamente' });
 		} catch (error) {
@@ -177,13 +182,13 @@ export class AuthController {
 			const { token } = req.body;
 
 			// Verificar si el usuario existe
-			if (!req.user) {
+			if (!req.preUser) {
 				res.status(404).json({ error: 'El usuario no existe' });
 				return;
 			}
 
 			// Verificar token válido y perteneciente al usuario
-			const tokenExists = await Token.findOne({ token: token, user: req.user.id });
+			const tokenExists = await Token.findOne({ token: token, user: req.preUser.id });
 			if (!tokenExists) {
 				res.status(404).json({ error: 'El token no es válido' });
 				return;
@@ -200,13 +205,13 @@ export class AuthController {
 			const { token, password } = req.body;
 
 			// Verificar si el usuario existe
-			if (!req.user) {
+			if (!req.preUser) {
 				res.status(404).json({ error: 'El usuario no existe' });
 				return;
 			}
 
 			// Verificar token válido y perteneciente al usuario
-			const tokenExists = await Token.findOne({ token: token, user: req.user.id });
+			const tokenExists = await Token.findOne({ token: token, user: req.preUser.id });
 			if (!tokenExists) {
 				res.status(404).json({ error: 'El token no es válido' });
 				return;
@@ -214,10 +219,10 @@ export class AuthController {
 
 			// Actualizar contraseña
 			const hashedPassword = await hashPassword(password);
-			req.user.password = hashedPassword;
+			req.preUser.password = hashedPassword;
 
 			// Eliminar token y guardar usuario
-			await Promise.allSettled([req.user.save(), tokenExists.deleteOne()]);
+			await Promise.allSettled([req.preUser.save(), tokenExists.deleteOne()]);
 
 			res.status(200).json({ message: 'Contraseña actualizada correctamente' });
 		} catch (error) {
