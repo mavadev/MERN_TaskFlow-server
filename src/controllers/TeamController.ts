@@ -40,7 +40,7 @@ export class TeamController {
 		try {
 			const project = await Project.findById(req.project.id).populate({
 				path: 'team',
-				select: 'id name email',
+				select: 'id name email avatar',
 			});
 
 			res.status(200).json({ data: project.team });

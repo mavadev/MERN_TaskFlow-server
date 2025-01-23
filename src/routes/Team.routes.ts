@@ -6,17 +6,17 @@ import { TeamController } from '../controllers/TeamController';
 
 const router = Router();
 
+router.get('/', TeamController.getTeam);
+
 router.post(
-	'/addMember',
+	'/add',
 	body('userId').isMongoId().notEmpty().withMessage('El ID del Usuario es Obligatorio'),
 	checkForValidationErrors,
 	TeamController.addMember
 );
 
-router.get('/', TeamController.getTeam);
-
 router.delete(
-	'/:userId',
+	'/delete/:userId',
 	param('userId').isMongoId().notEmpty().withMessage('El ID del Usuario es Obligatorio'),
 	checkForValidationErrors,
 	TeamController.removeMember

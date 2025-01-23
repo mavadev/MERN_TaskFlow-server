@@ -8,7 +8,12 @@ export class ProjectController {
 
 	static async getAllProjects(req: Request, res: Response) {
 		try {
-			const projects = await Project.find({ manager: req.user.id });
+			const [managedProjects, teamProjects] = await Promise.all([
+				Project.find({ manager: req.user.id }),
+				Project.find({ team: { $in: req.user.id } }),
+			]);
+
+			const projects = { managedProjects, teamProjects };
 			res.status(200).json({ data: projects });
 		} catch (error) {
 			res.status(500).json({ error: error.message });
