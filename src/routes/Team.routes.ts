@@ -23,10 +23,10 @@ router.delete(
 );
 
 router.post(
-	'/find',
-	body('email').isEmail().notEmpty().withMessage('El email es obligatorio'),
+	'/search',
+	body('username').isString().notEmpty().withMessage('El nombre de usuario es obligatorio'),
 	checkForValidationErrors,
-	TeamController.getUserByEmail
+	TeamController.getUsersByUsername
 );
 
 export default router;

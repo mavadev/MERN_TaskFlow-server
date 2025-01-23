@@ -69,11 +69,20 @@ export class TeamController {
 		}
 	};
 
-	static getUserByEmail = async (req: Request, res: Response) => {
+	static getUsersByUsername = async (req: Request, res: Response) => {
 		try {
-			const { email } = req.body;
-			const user = await User.findOne({ email }).select('id name email');
-			res.status(200).json({ message: `Se encontró el usuario`, data: user });
+			const { username } = req.body;
+
+			const users = await User.find({ username: { $regex: username, $options: 'i' } }).select(
+				'avatar id name username description'
+			);
+
+			// Filtrar los usuarios que ya están en el equipo
+			const filteredUsers = users.filter(
+				user => !req.project.team.includes(user.id) && req.project.manager.toString() !== user.id
+			);
+
+			res.status(200).json({ message: `Se encontraron ${users.length} usuarios`, data: filteredUsers });
 		} catch (error) {
 			res.status(500).json({ error: error.message });
 		}

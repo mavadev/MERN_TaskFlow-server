@@ -32,7 +32,7 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
 		const decodedToken = decodedJWT(token);
 
 		// Buscar usuario
-		const user = await User.findById(decodedToken.user_id).select('name email');
+		const user = await User.findById(decodedToken.user_id).select('avatar name email username description');
 
 		if (!user) {
 			res.status(401).json({ error: 'Token no válido' });
