@@ -43,7 +43,7 @@ export class TeamController {
 				select: 'id name email',
 			});
 
-			res.status(200).json(project.team);
+			res.status(200).json({ data: project.team });
 		} catch (error) {
 			res.status(500).json({ error: error.message });
 		}
@@ -64,6 +64,16 @@ export class TeamController {
 
 			await req.project.save();
 			res.status(200).json({ message: 'Usuario eliminado del equipo correctamente' });
+		} catch (error) {
+			res.status(500).json({ error: error.message });
+		}
+	};
+
+	static getUserByEmail = async (req: Request, res: Response) => {
+		try {
+			const { email } = req.body;
+			const user = await User.findOne({ email }).select('id name email');
+			res.status(200).json({ message: `Se encontró el usuario`, data: user });
 		} catch (error) {
 			res.status(500).json({ error: error.message });
 		}

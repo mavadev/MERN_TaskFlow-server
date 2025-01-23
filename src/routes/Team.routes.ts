@@ -22,4 +22,11 @@ router.delete(
 	TeamController.removeMember
 );
 
+router.post(
+	'/find',
+	body('email').isEmail().notEmpty().withMessage('El email es obligatorio'),
+	checkForValidationErrors,
+	TeamController.getUserByEmail
+);
+
 export default router;

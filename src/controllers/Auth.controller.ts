@@ -30,7 +30,7 @@ export class AuthController {
 			// Enviar email
 			AuthEmail.sendConfirmationEmail({ user, token });
 
-			res.status(201).json({ message: 'Cuenta creada, revise su correo para confirmar su cuenta', data: user });
+			res.status(201).json({ message: 'Cuenta creada, revise su correo para confirmar su cuenta' });
 		} catch (error) {
 			res.status(500).json({ error: 'Error al crear la cuenta' });
 		}
