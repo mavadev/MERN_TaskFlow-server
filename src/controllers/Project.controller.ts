@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express';
 import Project from '../models/Project.model';
+import Task from '../models/Task.model';
 
 export class ProjectController {
 	static async createProject(req: Request, res: Response) {
@@ -51,8 +52,11 @@ export class ProjectController {
 	}
 	static async deleteProject(req: Request, res: Response) {
 		try {
+			// Eliminar las tareas del proyecto
+			await Task.deleteMany({ project: req.project._id });
+
 			await req.project.deleteOne();
-			res.status(204).json({ message: 'Proyecto Eliminado' });
+			res.status(200).json({ message: 'Proyecto Eliminado' });
 		} catch (error) {
 			res.status(500).json({ error: error.message });
 		}
