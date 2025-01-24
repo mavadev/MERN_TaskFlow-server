@@ -38,12 +38,12 @@ export class TeamController {
 
 	static getTeam = async (req: Request, res: Response) => {
 		try {
-			const project = await Project.findById(req.project.id).populate({
-				path: 'team',
+			const { manager, team } = await Project.findById(req.project.id).populate({
+				path: 'manager team',
 				select: 'id name email avatar',
 			});
 
-			res.status(200).json({ data: project.team });
+			res.status(200).json({ data: { manager, team } });
 		} catch (error) {
 			res.status(500).json({ error: error.message });
 		}

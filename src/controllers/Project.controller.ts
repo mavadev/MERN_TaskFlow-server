@@ -26,7 +26,18 @@ export class ProjectController {
 		}
 	}
 	static async getProjectById(req: Request, res: Response) {
-		res.status(200).json({ data: req.project });
+		try {
+			const project = await Project.findById(req.params.projectId).populate({
+				path: 'tasks',
+				populate: {
+					path: 'assignedTo',
+					select: 'id name avatar username description',
+				},
+			});
+			res.status(200).json({ data: project });
+		} catch (error) {
+			res.status(500).json({ error: error.message });
+		}
 	}
 
 	/* MANAGER */

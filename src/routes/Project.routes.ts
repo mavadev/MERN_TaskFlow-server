@@ -37,6 +37,6 @@ router
 router.use('/:projectId/tasks', taskRoutes);
 
 // Equipo
-router.use('/:projectId/team', checkManagerValidity, teamRoutes);
+router.use('/:projectId/team', teamRoutes);
 
 export default router;

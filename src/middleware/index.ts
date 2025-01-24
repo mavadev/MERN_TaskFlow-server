@@ -107,7 +107,7 @@ export const checkTaskValidity = async (req: Request, res: Response, next: NextF
 		}
 
 		// Validar que la tarea exista
-		const task = await Task.findOne({ _id: taskId, project: req.project.id });
+		const task = await Task.findOne({ _id: taskId, project: req.project.id }).populate('assignedTo');
 		if (!task) {
 			res.status(404).json({ error: 'Tarea no encontrada' });
 			return;

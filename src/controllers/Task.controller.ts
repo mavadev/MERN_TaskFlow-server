@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
 import Task from '../models/Task.model';
 import { taskStatus } from '../models/Task.model';
+import { isValidObjectId } from 'mongoose';
 
 export class TaskController {
 	static async createTask(req: Request, res: Response) {
@@ -49,6 +50,35 @@ export class TaskController {
 			await req.task.save();
 
 			res.status(200).json({ message: 'Estado de Tarea Actualizado Correctamente', data: req.task });
+		} catch (error) {
+			res.status(500).json({ error: error.message });
+		}
+	}
+
+	static async assignTask(req: Request, res: Response) {
+		try {
+			// Validar si se asigna o se designa
+			const userAssigned = req.body.assignTo;
+			if (userAssigned) {
+				// Validar que sea un mongoId
+				if (!isValidObjectId(userAssigned)) {
+					res.status(400).json({ error: 'El ID del Usuario no es válido' });
+					return;
+				}
+
+				// Validar que el usuario sea un colaborador del proyecto
+				if (!req.project.team.includes(userAssigned) && req.project.manager.toString() !== userAssigned) {
+					res.status(400).json({ error: 'El usuario no pertenece al equipo del proyecto' });
+					return;
+				}
+
+				req.task.assignedTo = req.body.assignTo;
+			} else {
+				req.task.assignedTo = null;
+			}
+
+			await req.task.save();
+			res.status(200).json({ message: 'Acción Realizada Correctamente', data: req.task });
 		} catch (error) {
 			res.status(500).json({ error: error.message });
 		}

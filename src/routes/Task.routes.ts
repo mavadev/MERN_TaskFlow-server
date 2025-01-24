@@ -37,4 +37,6 @@ router.patch(
 	TaskController.updateTaskStatus
 );
 
+router.patch('/:taskId/assign', TaskController.assignTask);
+
 export default router;
