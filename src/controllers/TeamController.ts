@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
 import User from '../models/User.model';
 import Project from '../models/Project.model';
+import Task from '../models/Task.model';
 
 export class TeamController {
 	static addMember = async (req: Request, res: Response) => {
@@ -58,6 +59,9 @@ export class TeamController {
 				res.status(404).json({ error: 'Usuario no encontrado en el equipo' });
 				return;
 			}
+
+			// Eliminar el usuario de las tareas asignadas
+			await Task.updateMany({ assignedTo: userId }, { $set: { assignedTo: null } });
 
 			// Eliminar el usuario del equipo
 			req.project.team = req.project.team.filter(team => team.toString() !== userId);
