@@ -18,4 +18,18 @@ export class NoteController {
 			res.status(500).json({ error: 'Error al crear la nota' });
 		}
 	};
+
+	static deleteNote = async (req: Request, res: Response) => {
+		try {
+			// Remover nota de la tarea
+			req.task.notes = req.task.notes.filter(noteId => noteId.toString() !== req.params.noteId);
+
+			// Eliminar nota y guardar tarea
+			await Promise.allSettled([Note.deleteOne({ _id: req.params.noteId }), req.task.save()]);
+
+			res.status(200).json({ message: 'Nota eliminada correctamente' });
+		} catch (error) {
+			res.status(500).json({ error: 'Error al eliminar la nota' });
+		}
+	};
 }

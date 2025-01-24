@@ -32,10 +32,15 @@ export class TaskController {
 	}
 	static async getTaskByID(req: Request, res: Response) {
 		try {
-			const task = await Task.findById(req.params.taskId).populate('assignedTo').populate({
-				path: 'notes',
-				select: 'content createdAt',
-			});
+			const task = await Task.findById(req.params.taskId)
+				.populate({
+					path: 'assignedTo',
+					select: 'name avatar username description',
+				})
+				.populate({
+					path: 'notes',
+					select: 'content createdAt',
+				});
 			res.status(200).json({ message: 'Tarea Encontrada', data: task });
 		} catch (error) {
 			res.status(500).json({ error: error.message });

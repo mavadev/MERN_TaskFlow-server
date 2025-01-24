@@ -6,7 +6,7 @@ export interface INote extends Document {
 	createdBy: string;
 }
 
-const noteSchema = new Schema(
+const noteSchema: Schema = new Schema(
 	{
 		content: { type: String, required: true, trim: true },
 		task: { type: Schema.Types.ObjectId, ref: 'Task', required: true },
