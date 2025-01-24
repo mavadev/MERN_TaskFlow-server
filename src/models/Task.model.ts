@@ -18,6 +18,7 @@ export interface ITask extends Document {
 	project: Types.ObjectId;
 	status: TaskStatus;
 	assignedTo: Types.ObjectId;
+	notes: Types.ObjectId[];
 }
 
 // Esquema del modelo
@@ -49,6 +50,12 @@ const TaskSchema: Schema = new Schema(
 			ref: 'User',
 			default: null,
 		},
+		notes: [
+			{
+				type: Types.ObjectId,
+				ref: 'Note',
+			},
+		],
 	},
 	{ timestamps: true }
 );

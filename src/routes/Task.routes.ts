@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { body } from 'express-validator';
 import { TaskController } from '../controllers/Task.controller';
 import { checkForValidationErrors, checkManagerValidity, checkTaskValidity } from '../middleware';
+import noteRoutes from './Note.routes';
 
 const router = Router();
 
@@ -38,5 +39,8 @@ router.patch(
 );
 
 router.patch('/:taskId/assign', TaskController.assignTask);
+
+// Notas
+router.use('/:taskId/notes', noteRoutes);
 
 export default router;
