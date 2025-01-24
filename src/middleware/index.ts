@@ -46,6 +46,14 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
 	}
 };
 
+export const checkManagerValidity = (req: Request, res: Response, next: NextFunction) => {
+	if (req.user.id !== req.project.manager.toString()) {
+		res.status(401).json({ error: 'Acción no permitida' });
+		return;
+	}
+	next();
+};
+
 export const checkUserValidity = async (req: Request, res: Response, next: NextFunction) => {
 	// Validar email
 	check('email').isEmail().withMessage('Email no válido')(req, res, errors => {
@@ -75,8 +83,8 @@ export const checkProjectValidity = async (req: Request, res: Response, next: Ne
 			return;
 		}
 
-		// Validar que el proyecto pertenezca al usuario
-		if (project.manager.toString() !== req.user.id) {
+		// Validar que el proyecto pertenezca al usuario o que sea colaborador
+		if (project.manager.toString() !== req.user.id && !project.team.includes(req.user.id)) {
 			res.status(401).json({ error: 'Acción no permitida' });
 			return;
 		}

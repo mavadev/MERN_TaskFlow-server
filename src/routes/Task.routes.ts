@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
 import { TaskController } from '../controllers/Task.controller';
-import { checkForValidationErrors, checkTaskValidity } from '../middleware';
+import { checkForValidationErrors, checkManagerValidity, checkTaskValidity } from '../middleware';
 
 const router = Router();
 
@@ -19,15 +19,16 @@ router
 
 router
 	.route('/:taskId')
-	.get(TaskController.getTaskByID)
 	.put(
 		body('name').trim().notEmpty().withMessage('El Nombre de la Tarea es Obligatorio'),
 		body('description').trim().notEmpty().withMessage('La Descripción de la Tarea es Obligatoria'),
 		body('status').trim().notEmpty().withMessage('El Estado de la Tarea es Obligatoria'),
 		checkForValidationErrors,
+		checkManagerValidity,
 		TaskController.updateTask
 	)
-	.delete(TaskController.deleteTask);
+	.get(TaskController.getTaskByID)
+	.delete(checkManagerValidity, TaskController.deleteTask);
 
 router.patch(
 	'/:taskId/status',
