@@ -32,7 +32,7 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
 		const decodedToken = decodedJWT(token);
 
 		// Buscar usuario
-		const user = await User.findById(decodedToken.user_id).select('avatar name email username description');
+		const user = await User.findById(decodedToken.user_id).select('name avatar username');
 
 		if (!user) {
 			res.status(401).json({ error: 'Token no válido' });
@@ -54,7 +54,7 @@ export const checkManagerValidity = (req: Request, res: Response, next: NextFunc
 	next();
 };
 
-export const checkUserValidity = async (req: Request, res: Response, next: NextFunction) => {
+export const checkEmailValidity = async (req: Request, res: Response, next: NextFunction) => {
 	// Validar email
 	check('email').isEmail().withMessage('Email no válido')(req, res, errors => {
 		if (errors) return res.status(400).json({ errors: errors.array() });
@@ -77,7 +77,7 @@ export const checkProjectValidity = async (req: Request, res: Response, next: Ne
 		}
 
 		// Validar que el proyecto exista
-		const project = await Project.findById(projectId);
+		const project = await Project.findById(projectId).select('manager team tasks');
 		if (!project) {
 			res.status(404).json({ error: 'Proyecto no encontrado' });
 			return;
@@ -107,7 +107,7 @@ export const checkTaskValidity = async (req: Request, res: Response, next: NextF
 		}
 
 		// Validar que la tarea exista
-		const task = await Task.findOne({ _id: taskId, project: req.project.id });
+		const task = await Task.findOne({ _id: taskId, project: req.project.id }).select('id');
 		if (!task) {
 			res.status(404).json({ error: 'Tarea no encontrada' });
 			return;

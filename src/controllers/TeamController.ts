@@ -1,9 +1,39 @@
 import type { Request, Response } from 'express';
 import User from '../models/User.model';
-import Project from '../models/Project.model';
 import Task from '../models/Task.model';
+import Project from '../models/Project.model';
 
 export class TeamController {
+	static getTeam = async (req: Request, res: Response) => {
+		try {
+			const { manager, team } = await Project.findById(req.project.id).populate({
+				path: 'manager team',
+				select: 'name avatar username',
+			});
+
+			res.status(200).json({ data: { manager, team } });
+		} catch (error) {
+			res.status(500).json({ error: error.message });
+		}
+	};
+
+	static getUsersByUsername = async (req: Request, res: Response) => {
+		try {
+			const { username } = req.body;
+			const { manager, team } = req.project;
+			const excludedIds = [manager, ...team];
+
+			const users = await User.find({
+				_id: { $nin: excludedIds },
+				username: { $regex: username, $options: 'i' },
+			}).select('name avatar username');
+
+			res.status(200).json({ message: `Se encontraron ${users.length} usuarios`, data: users });
+		} catch (error) {
+			res.status(500).json({ error: error.message });
+		}
+	};
+
 	static addMember = async (req: Request, res: Response) => {
 		const { userId } = req.body;
 
@@ -37,19 +67,6 @@ export class TeamController {
 		}
 	};
 
-	static getTeam = async (req: Request, res: Response) => {
-		try {
-			const { manager, team } = await Project.findById(req.project.id).populate({
-				path: 'manager team',
-				select: 'id name email avatar',
-			});
-
-			res.status(200).json({ data: { manager, team } });
-		} catch (error) {
-			res.status(500).json({ error: error.message });
-		}
-	};
-
 	static removeMember = async (req: Request, res: Response) => {
 		try {
 			const { userId } = req.params;
@@ -68,25 +85,6 @@ export class TeamController {
 
 			await req.project.save();
 			res.status(200).json({ message: 'Usuario eliminado del equipo correctamente' });
-		} catch (error) {
-			res.status(500).json({ error: error.message });
-		}
-	};
-
-	static getUsersByUsername = async (req: Request, res: Response) => {
-		try {
-			const { username } = req.body;
-
-			const users = await User.find({ username: { $regex: username, $options: 'i' } }).select(
-				'avatar id name username description'
-			);
-
-			// Filtrar los usuarios que ya están en el equipo
-			const filteredUsers = users.filter(
-				user => !req.project.team.includes(user.id) && req.project.manager.toString() !== user.id
-			);
-
-			res.status(200).json({ message: `Se encontraron ${users.length} usuarios`, data: filteredUsers });
 		} catch (error) {
 			res.status(500).json({ error: error.message });
 		}

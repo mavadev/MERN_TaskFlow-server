@@ -1,21 +1,18 @@
+import { isValidObjectId } from 'mongoose';
 import type { Request, Response } from 'express';
 import Task from '../models/Task.model';
 import { taskStatus } from '../models/Task.model';
-import { isValidObjectId } from 'mongoose';
 
 export class TaskController {
 	static async createTask(req: Request, res: Response) {
 		try {
-			// Crear tarea
-			const task = new Task(req.body);
-			// Asignar proyecto
-			task.project = req.project.id;
-			// Asignar tarea en proyecto
+			const task = await Task.create({ ...req.body, project: req.project.id });
+
+			// Añadir tarea al proyecto
 			req.project.tasks.push(task.id);
-			// Guardar cambios
-			await Promise.allSettled([task.save(), req.project.save()]);
-			// Responder con tarea creada
-			res.status(201).json({ message: 'Tarea Creada Correctamente', data: task });
+			await req.project.save();
+
+			res.status(201).json({ message: 'Tarea Creada Correctamente' });
 		} catch (error) {
 			res.status(500).json({ error: error.message });
 		}
@@ -24,7 +21,10 @@ export class TaskController {
 	/* MANAGER - COLABORADORES */
 	static async getAllTasks(req: Request, res: Response) {
 		try {
-			const tasks = await Task.find({ project: req.project.id });
+			const tasks = await Task.find({ project: req.project.id }).populate({
+				path: 'assignedTo',
+				select: 'name avatar username description',
+			});
 			res.status(200).json({ message: 'Tareas Encontradas', data: tasks });
 		} catch (error) {
 			res.status(500).json({ error: error.message });
@@ -35,7 +35,7 @@ export class TaskController {
 			const task = await Task.findById(req.params.taskId)
 				.populate({
 					path: 'assignedTo',
-					select: 'name avatar username description',
+					select: 'name avatar username',
 				})
 				.populate({
 					path: 'notes',
@@ -49,27 +49,25 @@ export class TaskController {
 	static async updateTaskStatus(req: Request, res: Response) {
 		try {
 			const validStatues = Object.values(taskStatus);
-			// Validar estado válido
+
 			if (!validStatues.includes(req.body.status)) {
 				res.status(400).json({ error: 'Estado de tarea inválido' });
 				return;
 			}
-			// Actualizar estado de la tarea
+
 			req.task.status = req.body.status;
 			await req.task.save();
 
-			res.status(200).json({ message: 'Estado de Tarea Actualizado Correctamente', data: req.task });
+			res.status(200).json({ message: 'Estado de Tarea Actualizado Correctamente' });
 		} catch (error) {
 			res.status(500).json({ error: error.message });
 		}
 	}
-
 	static async assignTask(req: Request, res: Response) {
 		try {
-			// Validar si se asigna o se designa
 			const userAssigned = req.body.assignTo;
 			if (userAssigned) {
-				// Validar que sea un mongoId
+				// Validar que sea un id válido
 				if (!isValidObjectId(userAssigned)) {
 					res.status(400).json({ error: 'El ID del Usuario no es válido' });
 					return;
@@ -87,7 +85,7 @@ export class TaskController {
 			}
 
 			await req.task.save();
-			res.status(200).json({ message: 'Acción Realizada Correctamente', data: req.task });
+			res.status(200).json({ message: 'Acción Realizada Correctamente' });
 		} catch (error) {
 			res.status(500).json({ error: error.message });
 		}
@@ -96,23 +94,17 @@ export class TaskController {
 	/* MANAGER */
 	static async updateTask(req: Request, res: Response) {
 		try {
-			// Actualizar tarea
-			req.task.name = req.body.name;
-			req.task.description = req.body.description;
-			req.task.status = req.body.status;
-			await req.task.save();
-
-			res.status(200).json({ message: 'Tarea Actualizada Correctamente', data: req.task });
+			await Task.findByIdAndUpdate(req.task.id, req.body, { new: true });
+			res.status(200).json({ message: 'Tarea Actualizada Correctamente' });
 		} catch (error) {
 			res.status(500).json({ error: error.message });
 		}
 	}
 	static async deleteTask(req: Request, res: Response) {
 		try {
-			// Guardamos el proyecto actualizado y eliminamos la tarea
 			await Promise.allSettled([req.project.updateOne({ $pull: { tasks: req.task.id } }), req.task.deleteOne()]);
 
-			res.status(200).json({ message: 'Tarea Eliminada Correctamente', data: null });
+			res.status(200).json({ message: 'Tarea Eliminada Correctamente' });
 		} catch (error) {
 			res.status(500).json({ error: error.message });
 		}

@@ -15,9 +15,10 @@ export class ProjectController {
 	/* MANAGER - COLABORADORES */
 	static async getAllProjects(req: Request, res: Response) {
 		try {
+			const selectProperties = 'clientName projectName description team';
 			const [managedProjects, teamProjects] = await Promise.all([
-				Project.find({ manager: req.user.id }),
-				Project.find({ team: { $in: req.user.id } }),
+				Project.find({ manager: req.user.id }).select(selectProperties),
+				Project.find({ team: { $in: req.user.id } }).select(selectProperties),
 			]);
 
 			const projects = { managedProjects, teamProjects };
@@ -28,11 +29,12 @@ export class ProjectController {
 	}
 	static async getProjectById(req: Request, res: Response) {
 		try {
-			const project = await Project.findById(req.params.projectId).populate({
+			const project = await Project.findById(req.project._id).populate({
 				path: 'tasks',
+				select: 'name description status assignedTo createdAt project',
 				populate: {
 					path: 'assignedTo',
-					select: 'id name avatar username description',
+					select: 'name avatar username',
 				},
 			});
 			res.status(200).json({ data: project });
@@ -44,7 +46,7 @@ export class ProjectController {
 	/* MANAGER */
 	static async updateProject(req: Request, res: Response) {
 		try {
-			await Project.findByIdAndUpdate(req.project._id, req.body, { new: true });
+			await Project.findByIdAndUpdate(req.project._id, req.body);
 			res.status(200).json({ message: 'Proyecto Actualizado' });
 		} catch (error) {
 			res.status(500).json({ error: error.message });
@@ -52,10 +54,8 @@ export class ProjectController {
 	}
 	static async deleteProject(req: Request, res: Response) {
 		try {
-			// Eliminar las tareas del proyecto
-			await Task.deleteMany({ project: req.project._id });
-
-			await req.project.deleteOne();
+			// Eliminar
+			await Promise.allSettled([req.project.deleteOne(), Task.deleteMany({ project: req.project._id })]);
 			res.status(200).json({ message: 'Proyecto Eliminado' });
 		} catch (error) {
 			res.status(500).json({ error: error.message });
