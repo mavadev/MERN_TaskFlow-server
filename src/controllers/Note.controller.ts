@@ -15,7 +15,7 @@ export class NoteController {
 
 			res.status(201).json({ message: 'Nota creada correctamente', data: note });
 		} catch (error) {
-			res.status(500).json({ error: 'Error al crear la nota' });
+			res.status(500).json({ error: 'Error al crear la nota: ' + error.message });
 		}
 	};
 

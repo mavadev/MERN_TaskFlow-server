@@ -29,14 +29,33 @@ export class ProjectController {
 	}
 	static async getProjectById(req: Request, res: Response) {
 		try {
-			const project = await Project.findById(req.project._id).populate({
+			const populateTasks = {
 				path: 'tasks',
 				select: 'name description status assignedTo createdAt project',
 				populate: {
 					path: 'assignedTo',
 					select: 'name avatar username',
 				},
-			});
+			};
+			const populateTeam = {
+				path: 'team',
+				select: 'name avatar username',
+			};
+			const populateManager = {
+				path: 'manager',
+				select: 'name avatar username',
+			};
+			const project = await Project.findById(req.project._id)
+				.populate(populateTasks)
+				.populate(populateTeam)
+				.populate(populateManager);
+
+			// Validar que el proyecto exista
+			if (!project) {
+				res.status(404).json({ error: 'Proyecto no encontrado' });
+				return;
+			}
+
 			res.status(200).json({ data: project });
 		} catch (error) {
 			res.status(500).json({ error: error.message });
