@@ -32,7 +32,7 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
 		const decodedToken = decodedJWT(token);
 
 		// Buscar usuario
-		const user = await User.findById(decodedToken.user_id).select('name avatar username');
+		const user = await User.findById(decodedToken.user_id).select('name avatar username password');
 
 		if (!user) {
 			res.status(401).json({ error: 'Token no válido' });
@@ -125,4 +125,11 @@ export const checkForValidationErrors = (req: Request, res: Response, next: Next
 	let errors = validationResult(req);
 	if (errors.isEmpty()) return next();
 	res.status(400).json({ errors: errors.array() });
+};
+
+export const validatePasswordConfirmation = (value, { req }) => {
+	if (value !== req.body.password) {
+		throw new Error('Las contraseñas no coinciden');
+	}
+	return true;
 };
