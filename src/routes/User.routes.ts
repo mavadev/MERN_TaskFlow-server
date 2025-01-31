@@ -1,20 +1,24 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
 import { UserController } from '../controllers/User.controller';
-import { checkForValidationErrors } from '../middleware';
+import { checkForValidationErrors, validatePasswordConfirmation } from '../middleware';
 
 const router = Router();
 
-const validatePasswordConfirmation = (value, { req }) => {
-	if (value !== req.body.password) {
-		throw new Error('Las contraseñas no coinciden');
-	}
-	return true;
-};
-router.get('/', UserController.getUser);
-
 router.get('/validate', UserController.validateUser);
+router.get('/', UserController.getProfile);
 
+// Perfil Público
+router.post(
+	'/change-profile',
+	body('name').trim().notEmpty().withMessage('El nombre es requerido'),
+	body('email').isEmail().withMessage('El email no es válido'),
+	body('description').trim().notEmpty().withMessage('La descripción es requerida'),
+	checkForValidationErrors,
+	UserController.updateProfile
+);
+
+// Autenticación
 router.post(
 	'/change-password',
 	body('current_password').trim().notEmpty().withMessage('La actual contraseña es obligatoria'),

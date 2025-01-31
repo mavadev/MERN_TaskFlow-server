@@ -4,7 +4,11 @@ import Project from '../models/Project.model';
 import { hashPassword, verifyPassword } from '../utils/auth';
 
 export class UserController {
-	static getUser = async (req: Request, res: Response) => {
+	static validateUser = async (req: Request, res: Response) => {
+		res.status(200).json({ data: req.user });
+	};
+
+	static getProfile = async (req: Request, res: Response) => {
 		try {
 			// Obtener el usuario
 			const user = await User.findById(req.user.id).select(
@@ -33,8 +37,27 @@ export class UserController {
 		}
 	};
 
-	static validateUser = async (req: Request, res: Response) => {
-		res.status(200).json({ data: req.user });
+	static updateProfile = async (req: Request, res: Response) => {
+		try {
+			const { name, email, description } = req.body;
+
+			// Validar que el email no exista
+			const user = await User.findOne({ email, _id: { $ne: req.user.id } });
+			if (user) {
+				res.status(400).json({ error: 'El email se encuentra en uso' });
+				return;
+			}
+
+			// Actualizar el perfil
+			req.user.name = name;
+			req.user.email = email;
+			req.user.description = description;
+			await req.user.save();
+
+			res.status(200).json({ message: 'Perfil actualizado correctamente' });
+		} catch (error) {
+			res.status(500).json({ error: error.message });
+		}
 	};
 
 	static changePassword = async (req: Request, res: Response) => {
