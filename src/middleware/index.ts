@@ -27,6 +27,7 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
 	}
 
 	const [, token] = bearerToken?.split(' ');
+	console.log({ bearerToken, token });
 	try {
 		// Decodificar token
 		const decodedToken = decodedJWT(token);

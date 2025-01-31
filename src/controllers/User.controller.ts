@@ -1,12 +1,33 @@
 import type { Request, Response } from 'express';
 import User from '../models/User.model';
+import Project from '../models/Project.model';
 import { hashPassword, verifyPassword } from '../utils/auth';
 
 export class UserController {
 	static getUser = async (req: Request, res: Response) => {
 		try {
-			const user = await User.findById(req.user.id).select('avatar name email description createdAt updatedAt');
-			res.status(200).json({ data: user });
+			// Obtener el usuario
+			const user = await User.findById(req.user.id).select(
+				'avatar name username email description createdAt updatedAt'
+			);
+
+			// Obtener los proyectos del usuario
+			const managedProjects = await Project.find({ manager: req.user.id }).select('projectName team').populate({
+				path: 'manager',
+				select: 'name avatar username',
+			});
+
+			// Obtener los proyectos en los que colabora
+			const teamProjects = await Project.find({ team: { $in: req.user.id } })
+				.select('projectName team')
+				.populate({
+					path: 'manager',
+					select: 'name avatar username',
+				});
+
+			const projects = { managedProjects, teamProjects };
+
+			res.status(200).json({ data: { user, projects } });
 		} catch (error) {
 			res.status(500).json({ error: error.message });
 		}
