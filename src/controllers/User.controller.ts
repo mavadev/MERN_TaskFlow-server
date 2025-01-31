@@ -75,6 +75,26 @@ export class UserController {
 		}
 	};
 
+	static updateUsername = async (req: Request, res: Response) => {
+		try {
+			const { username } = req.body;
+
+			// Validar que el username no exista
+			const user = await User.findOne({ username, _id: { $ne: req.user.id } });
+			if (user) {
+				res.status(400).json({ error: 'El nombre de usuario se encuentra en uso' });
+				return;
+			}
+
+			req.user.username = username;
+			await req.user.save();
+
+			res.status(200).json({ message: 'Nombre de usuario actualizado correctamente' });
+		} catch (error) {
+			res.status(500).json({ error: error.message });
+		}
+	};
+
 	static changePassword = async (req: Request, res: Response) => {
 		try {
 			const { current_password, password } = req.body;

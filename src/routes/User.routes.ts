@@ -11,19 +11,27 @@ router.get('/validate', UserController.validateUser);
 router
 	.route('/')
 	.get(UserController.getProfile)
-	.put(
+	.patch(
 		body('name').trim().notEmpty().withMessage('El nombre es requerido'),
 		body('email').isEmail().withMessage('El email no es válido'),
 		body('description').trim().notEmpty().withMessage('La descripción es requerida'),
 		checkForValidationErrors,
 		UserController.updateProfile
 	);
-router.put(
+router.patch(
 	'/collaboration',
 	body('collaborate').isBoolean().withMessage('El valor debe ser booleano'),
 	body('collaborators').isBoolean().withMessage('El valor debe ser booleano'),
 	checkForValidationErrors,
 	UserController.updateContribution
+);
+
+// Account
+router.patch(
+	'/username',
+	body('username').trim().notEmpty().withMessage('El nombre de usuario es requerido'),
+	checkForValidationErrors,
+	UserController.updateUsername
 );
 
 // Autenticación
