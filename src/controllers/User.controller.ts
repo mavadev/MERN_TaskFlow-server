@@ -60,6 +60,21 @@ export class UserController {
 		}
 	};
 
+	static updateContribution = async (req: Request, res: Response) => {
+		try {
+			const { collaborate, collaborators } = req.body;
+
+			req.user.allowCollaborate = collaborate;
+			req.user.allowCollaborators = collaborators;
+
+			await req.user.save();
+
+			res.status(200).json({ message: 'Contribución actualizada correctamente' });
+		} catch (error) {
+			res.status(500).json({ error: error.message });
+		}
+	};
+
 	static changePassword = async (req: Request, res: Response) => {
 		try {
 			const { current_password, password } = req.body;

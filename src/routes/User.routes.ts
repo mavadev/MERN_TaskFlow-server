@@ -6,16 +6,24 @@ import { checkForValidationErrors, validatePasswordConfirmation } from '../middl
 const router = Router();
 
 router.get('/validate', UserController.validateUser);
-router.get('/', UserController.getProfile);
 
 // Perfil Público
-router.post(
-	'/change-profile',
-	body('name').trim().notEmpty().withMessage('El nombre es requerido'),
-	body('email').isEmail().withMessage('El email no es válido'),
-	body('description').trim().notEmpty().withMessage('La descripción es requerida'),
+router
+	.route('/')
+	.get(UserController.getProfile)
+	.put(
+		body('name').trim().notEmpty().withMessage('El nombre es requerido'),
+		body('email').isEmail().withMessage('El email no es válido'),
+		body('description').trim().notEmpty().withMessage('La descripción es requerida'),
+		checkForValidationErrors,
+		UserController.updateProfile
+	);
+router.put(
+	'/collaboration',
+	body('collaborate').isBoolean().withMessage('El valor debe ser booleano'),
+	body('collaborators').isBoolean().withMessage('El valor debe ser booleano'),
 	checkForValidationErrors,
-	UserController.updateProfile
+	UserController.updateContribution
 );
 
 // Autenticación

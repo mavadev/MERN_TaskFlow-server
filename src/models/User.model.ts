@@ -8,6 +8,8 @@ export interface IUser extends Document {
 	avatar: string;
 	username: string;
 	description: string;
+	allowCollaborate: boolean;
+	allowCollaborators: boolean;
 }
 
 const UserSchema: Schema = new Schema(
@@ -19,6 +21,8 @@ const UserSchema: Schema = new Schema(
 		avatar: { type: String, default: '/images/default-avatar.jpg' },
 		username: { type: String, required: true, unique: true },
 		description: { type: String, default: '', maxlength: 160 },
+		allowCollaborate: { type: Boolean, default: false },
+		allowCollaborators: { type: Boolean, default: true },
 	},
 	{ timestamps: true }
 );
