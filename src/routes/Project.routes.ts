@@ -11,14 +11,15 @@ router.param('projectId', checkProjectValidity);
 
 router
 	.route('/')
+	.get(ProjectController.getAllProjects)
+	.delete(ProjectController.deleteAllProjects)
 	.post(
 		body('projectName').trim().notEmpty().withMessage('El Nombre del Proyecto es Obligatorio'),
 		body('clientName').trim().notEmpty().withMessage('El Nombre del Cliente es Obligatorio'),
 		body('description').trim().notEmpty().withMessage('La Descripción del Proyecto es Obligatoria'),
 		checkForValidationErrors,
 		ProjectController.createProject
-	)
-	.get(ProjectController.getAllProjects);
+	);
 
 router
 	.route('/:projectId')

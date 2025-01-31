@@ -9,8 +9,8 @@ const router = Router();
 router.get('/', TeamController.getTeam);
 
 router.post(
-	'/add',
-	body('userId').isMongoId().notEmpty().withMessage('El ID del Usuario es Obligatorio'),
+	'/add/:userId',
+	param('userId').isMongoId().notEmpty().withMessage('El ID del Usuario es Obligatorio'),
 	checkForValidationErrors,
 	checkManagerValidity,
 	TeamController.addMember
@@ -31,5 +31,7 @@ router.post(
 	checkManagerValidity,
 	TeamController.getUsersByUsername
 );
+
+router.post('/exit', checkForValidationErrors, TeamController.exitProject);
 
 export default router;

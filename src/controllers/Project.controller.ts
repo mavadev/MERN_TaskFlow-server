@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
 import Project from '../models/Project.model';
 import Task from '../models/Task.model';
+import Note from '../models/Note.model';
 
 export class ProjectController {
 	static async createProject(req: Request, res: Response) {
@@ -76,6 +77,25 @@ export class ProjectController {
 			// Eliminar
 			await Promise.allSettled([req.project.deleteOne(), Task.deleteMany({ project: req.project._id })]);
 			res.status(200).json({ message: 'Proyecto Eliminado' });
+		} catch (error) {
+			res.status(500).json({ error: error.message });
+		}
+	}
+	static async deleteAllProjects(req: Request, res: Response) {
+		try {
+			const projects = await Project.find({ manager: req.user.id }).select('_id');
+			const tasks = await Task.find({ project: { $in: projects } }).select('_id');
+
+			const projectIds = projects.map(p => p._id);
+			const taskIds = tasks.map(t => t._id);
+
+			await Promise.allSettled([
+				Note.deleteMany({ task: { $in: taskIds } }),
+				Task.deleteMany({ project: { $in: projectIds } }),
+				Project.deleteMany({ manager: req.user.id }),
+			]);
+
+			res.status(200).json({ message: projectIds.length });
 		} catch (error) {
 			res.status(500).json({ error: error.message });
 		}
