@@ -74,8 +74,16 @@ export class ProjectController {
 	}
 	static async deleteProject(req: Request, res: Response) {
 		try {
+			// Obtener las tareas del proyecto
+			const tasks = await Task.find({ project: req.project._id }).select('_id');
+			const tasksIds = tasks.map(t => t._id);
+
 			// Eliminar
-			await Promise.allSettled([req.project.deleteOne(), Task.deleteMany({ project: req.project._id })]);
+			await Promise.allSettled([
+				Note.deleteMany({ task: { $in: tasksIds } }),
+				Task.deleteMany({ project: req.project._id }),
+				req.project.deleteOne(),
+			]);
 			res.status(200).json({ message: 'Proyecto Eliminado' });
 		} catch (error) {
 			res.status(500).json({ error: error.message });

@@ -27,7 +27,7 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
 	}
 
 	const [, token] = bearerToken?.split(' ');
-	console.log({ bearerToken, token });
+
 	try {
 		// Decodificar token
 		const decodedToken = decodedJWT(token);
@@ -39,6 +39,8 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
 			res.status(401).json({ error: 'Token no válido' });
 			return;
 		}
+
+		console.log(user);
 
 		req.user = user;
 		next();

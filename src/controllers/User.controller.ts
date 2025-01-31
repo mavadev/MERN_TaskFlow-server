@@ -10,11 +10,28 @@ export class UserController {
 		res.status(200).json({ data: req.user });
 	};
 
+	static checkPassword = async (req: Request, res: Response) => {
+		try {
+			const { password } = req.body;
+
+			// Validar que la contraseña sea correcta
+			const isPasswordCorrect = await verifyPassword(password, req.user.password);
+			if (!isPasswordCorrect) {
+				res.status(401).json({ error: 'Contraseña incorrecta' });
+				return;
+			}
+
+			res.status(200).json({ message: 'Contraseña correcta' });
+		} catch (error) {
+			res.status(500).json({ error: error.message });
+		}
+	};
+
 	static getProfile = async (req: Request, res: Response) => {
 		try {
 			// Obtener el usuario
 			const user = await User.findById(req.user.id).select(
-				'avatar name username email description createdAt updatedAt'
+				'avatar name username email description createdAt updatedAt allowCollaborate allowCollaborators'
 			);
 
 			// Obtener los proyectos del usuario
@@ -99,21 +116,27 @@ export class UserController {
 
 	static deleteProfile = async (req: Request, res: Response) => {
 		try {
+			// Retirar de todos los proyectos en los que colabora
+			await Project.updateMany({ team: req.user.id }, { $pull: { team: req.user.id } });
+
 			// Obtener todos los proyectos del usuario
 			const projects = await Project.find({ manager: req.user.id }).select('_id');
+			const projectsIds = projects.map(project => project._id);
 
 			// Obtener todas las tareas del usuario
-			const tasks = await Task.find({ project: { $in: projects } }).select('_id');
+			const tasks = await Task.find({ project: { $in: projectsIds } }).select('_id');
+			const tasksIds = tasks.map(task => task._id);
 
 			await Promise.allSettled([
-				Note.deleteMany({ task: { $in: tasks } }),
-				Task.deleteMany({ project: { $in: projects } }),
+				Note.deleteMany({ task: { $in: tasksIds } }),
+				Task.deleteMany({ project: { $in: projectsIds } }),
 				Project.deleteMany({ manager: req.user.id }),
 				req.user.deleteOne(),
 			]);
 
 			res.status(200).json({ message: 'Perfil eliminado' });
 		} catch (error) {
+			console.log(error);
 			res.status(500).json({ error: error.message });
 		}
 	};
