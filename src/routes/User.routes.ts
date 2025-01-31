@@ -11,6 +11,7 @@ router.get('/validate', UserController.validateUser);
 router
 	.route('/')
 	.get(UserController.getProfile)
+	.delete(UserController.deleteProfile)
 	.patch(
 		body('name').trim().notEmpty().withMessage('El nombre es requerido'),
 		body('email').isEmail().withMessage('El email no es válido'),

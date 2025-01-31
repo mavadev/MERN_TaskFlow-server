@@ -1,7 +1,9 @@
 import type { Request, Response } from 'express';
+import { hashPassword, verifyPassword } from '../utils/auth';
 import User from '../models/User.model';
 import Project from '../models/Project.model';
-import { hashPassword, verifyPassword } from '../utils/auth';
+import Task from '../models/Task.model';
+import Note from '../models/Note.model';
 
 export class UserController {
 	static validateUser = async (req: Request, res: Response) => {
@@ -90,6 +92,27 @@ export class UserController {
 			await req.user.save();
 
 			res.status(200).json({ message: 'Nombre de usuario actualizado correctamente' });
+		} catch (error) {
+			res.status(500).json({ error: error.message });
+		}
+	};
+
+	static deleteProfile = async (req: Request, res: Response) => {
+		try {
+			// Obtener todos los proyectos del usuario
+			const projects = await Project.find({ manager: req.user.id }).select('_id');
+
+			// Obtener todas las tareas del usuario
+			const tasks = await Task.find({ project: { $in: projects } }).select('_id');
+
+			await Promise.allSettled([
+				Note.deleteMany({ task: { $in: tasks } }),
+				Task.deleteMany({ project: { $in: projects } }),
+				Project.deleteMany({ manager: req.user.id }),
+				req.user.deleteOne(),
+			]);
+
+			res.status(200).json({ message: 'Perfil eliminado' });
 		} catch (error) {
 			res.status(500).json({ error: error.message });
 		}
