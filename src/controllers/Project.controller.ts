@@ -28,6 +28,29 @@ export class ProjectController {
 			res.status(500).json({ error: error.message });
 		}
 	}
+	static async getProjectsConfig(req: Request, res: Response) {
+		try {
+			// Obtener los proyectos del usuario
+			const managedProjects = await Project.find({ manager: req.user.id }).select('projectName team').populate({
+				path: 'manager',
+				select: 'name avatar username',
+			});
+
+			// Obtener los proyectos en los que colabora
+			const teamProjects = await Project.find({ team: { $in: req.user.id } })
+				.select('projectName team')
+				.populate({
+					path: 'manager',
+					select: 'name avatar username',
+				});
+
+			const projects = { managedProjects, teamProjects };
+			res.status(200).json({ data: projects });
+		} catch (error) {
+			res.status(500).json({ error: error.message });
+		}
+	}
+
 	static async getProjectById(req: Request, res: Response) {
 		try {
 			const populateTasks = {
@@ -103,7 +126,7 @@ export class ProjectController {
 				Project.deleteMany({ manager: req.user.id }),
 			]);
 
-			res.status(200).json({ message: projectIds.length });
+			res.status(200).json({ message: projectIds.length.toString() });
 		} catch (error) {
 			res.status(500).json({ error: error.message });
 		}

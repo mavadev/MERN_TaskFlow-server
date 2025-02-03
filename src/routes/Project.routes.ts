@@ -21,6 +21,8 @@ router
 		ProjectController.createProject
 	);
 
+router.route('/config').get(ProjectController.getProjectsConfig);
+
 router
 	.route('/:projectId')
 	.put(

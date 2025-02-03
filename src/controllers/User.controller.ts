@@ -34,23 +34,7 @@ export class UserController {
 				'avatar name username email description createdAt updatedAt allowCollaborate allowCollaborators'
 			);
 
-			// Obtener los proyectos del usuario
-			const managedProjects = await Project.find({ manager: req.user.id }).select('projectName team').populate({
-				path: 'manager',
-				select: 'name avatar username',
-			});
-
-			// Obtener los proyectos en los que colabora
-			const teamProjects = await Project.find({ team: { $in: req.user.id } })
-				.select('projectName team')
-				.populate({
-					path: 'manager',
-					select: 'name avatar username',
-				});
-
-			const projects = { managedProjects, teamProjects };
-
-			res.status(200).json({ data: { user, projects } });
+			res.status(200).json({ data: user });
 		} catch (error) {
 			res.status(500).json({ error: error.message });
 		}
@@ -145,8 +129,9 @@ export class UserController {
 		try {
 			const { current_password, password } = req.body;
 
-			// Validar que el password sea correcto
-			if (!verifyPassword(current_password, req.user.password)) {
+			// Validar que la contraseña actual sea correcta
+			const isPasswordCorrect = await verifyPassword(current_password, req.user.password);
+			if (!isPasswordCorrect) {
 				res.status(401).json({ error: 'Contraseña incorrecta' });
 				return;
 			}
